@@ -676,26 +676,22 @@ function validateConfig(cfg){
 }
 function buildApiUrl(baseUrl,path){if(baseUrl.endsWith('/v1')) return baseUrl+path;return baseUrl+'/v1'+path;}
 async function callAI(imageB64,prompt,cfg){
-  const controller=new AbortController();const timer=setTimeout(()=>controller.abort(),30000);
+  const controller=new AbortController();const timer=setTimeout(()=>controller.abort(),60000);
   try{
-    if(cfg.provider==='anthropic'){
-      const url=buildApiUrl(cfg.base_url,'/messages');
-      const resp=await fetch(url,{method:'POST',headers:{'x-api-key':cfg.api_key,'anthropic-version':'2023-06-01','Content-Type':'application/json'},body:JSON.stringify({model:cfg.model,max_tokens:1024,messages:[{role:'user',content:[{type:'image',source:{type:'base64',media_type:'image/jpeg',data:imageB64}},{type:'text',text:prompt}]}]}),signal:controller.signal});
-      if(resp.status===401||resp.status===403) throw new Error('API密钥无效或权限不足，请检查配置');
-      if(!resp.ok) throw new Error('AI服务返回错误: '+resp.status);
-      const data=await resp.json();const blocks=data.content||[];
-      return blocks.filter(b=>b.type==='text').map(b=>b.text||'').join('');
-    }else{
-      const url=buildApiUrl(cfg.base_url,'/chat/completions');
-      const resp=await fetch(url,{method:'POST',headers:{'Authorization':'Bearer '+cfg.api_key,'Content-Type':'application/json'},body:JSON.stringify({model:cfg.model,messages:[{role:'user',content:[{type:'text',text:prompt},{type:'image_url',image_url:{url:'data:image/jpeg;base64,'+imageB64}}]}],max_tokens:1024}),signal:controller.signal});
-      if(resp.status===401||resp.status===403) throw new Error('API密钥无效或权限不足，请检查配置');
-      if(!resp.ok) throw new Error('AI服务返回错误: '+resp.status);
-      const data=await resp.json();
-      return data.choices[0].message.content;
+    // 走同域 serverless 代理，避免 CORS 问题
+    const isLocalhost=location.hostname==='localhost'||location.hostname==='127.0.0.1';
+    const proxyUrl=isLocalhost?'http://localhost:3000/api/recognize':'/api/recognize';
+    const resp=await fetch(proxyUrl,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({provider:cfg.provider,api_key:cfg.api_key,base_url:cfg.base_url,model:cfg.model,prompt:prompt,image:imageB64}),signal:controller.signal});
+    const data=await resp.json();
+    if(!resp.ok||data.error){
+      let msg=data.error||('AI服务返回错误: '+resp.status);
+      if(data.detail) msg+='\n详情: '+data.detail;
+      throw new Error(msg);
     }
+    return data.text||'';
   }catch(e){
-    if(e.name==='AbortError') throw new Error('AI识别超时，请重试');
-    if(e.message==='Failed to fetch') throw new Error('网络连接失败，请检查网络或 CORS 设置');
+    if(e.name==='AbortError') throw new Error('AI识别超时（60秒），请重试');
+    if(e.message==='Failed to fetch') throw new Error('网络连接失败，请检查网络');
     throw e;
   }finally{clearTimeout(timer);}
 }
