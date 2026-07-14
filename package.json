@@ -1,0 +1,7 @@
+{
+  "name": "foodlog",
+  "private": true,
+  "scripts": {
+    "build": "mkdir -p public && cp static/index.html public/"
+  }
+}

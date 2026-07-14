@@ -1,6 +1,5 @@
 {
   "framework": null,
-  "buildCommand": "mkdir -p public && cp static/index.html public/",
   "outputDirectory": "public",
   "rewrites": [
     {
