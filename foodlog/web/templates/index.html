@@ -1,0 +1,1607 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🍚 饭记 - 你的饮食日记</title>
+<style>
+/* ==================== 基础与变量 ==================== */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --primary:#FF6B35;
+  --primary-dark:#E55A2B;
+  --primary-light:#FFE8DE;
+  --primary-gradient:linear-gradient(135deg,#FF6B35 0%,#FF9558 100%);
+  --text:#2D3436;
+  --text-light:#636E72;
+  --text-muted:#B2BEC3;
+  --bg:#F5F6FA;
+  --card-bg:#FFFFFF;
+  --border:#E9ECF0;
+  --success:#00B894;
+  --success-light:#E0F8F4;
+  --warning:#F39C12;
+  --warning-light:#FEF3E0;
+  --danger:#E74C3C;
+  --danger-light:#FDECEA;
+  --info:#3498DB;
+  --info-light:#E8F4FD;
+  --radius:12px;
+  --radius-sm:8px;
+  --shadow:0 2px 12px rgba(0,0,0,0.06);
+  --shadow-lg:0 8px 32px rgba(0,0,0,0.12);
+  --nav-h:60px;
+  --max-w:960px;
+}
+html{font-size:16px;-webkit-text-size-adjust:100%}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  line-height:1.6;
+  min-height:100vh;
+  -webkit-font-smoothing:antialiased;
+}
+a{color:inherit;text-decoration:none}
+button{font-family:inherit;cursor:pointer;border:none;outline:none}
+input,select,textarea{font-family:inherit;font-size:inherit;outline:none}
+.hidden{display:none!important}
+
+/* ==================== 导航栏 ==================== */
+.navbar{
+  position:sticky;top:0;z-index:100;
+  background:var(--card-bg);
+  border-bottom:1px solid var(--border);
+  height:var(--nav-h);
+  display:flex;align-items:center;
+  padding:0 24px;
+  box-shadow:0 1px 8px rgba(0,0,0,0.03);
+}
+.logo{font-size:20px;font-weight:700;color:var(--primary);white-space:nowrap}
+.nav-items{display:flex;gap:4px;margin-left:32px}
+.nav-item{
+  padding:8px 16px;border-radius:var(--radius-sm);
+  font-size:14px;color:var(--text-light);font-weight:500;
+  transition:all .2s;cursor:pointer;background:none;
+}
+.nav-item:hover{color:var(--primary);background:var(--primary-light)}
+.nav-item.active{color:var(--primary);background:var(--primary-light);font-weight:600}
+.nav-right{margin-left:auto;display:flex;gap:10px;align-items:center}
+.btn{
+  padding:8px 18px;border-radius:var(--radius-sm);font-size:14px;font-weight:600;
+  transition:all .2s;display:inline-flex;align-items:center;gap:6px;
+}
+.btn-primary{background:var(--primary-gradient);color:#fff;box-shadow:0 2px 8px rgba(255,107,53,0.3)}
+.btn-primary:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(255,107,53,0.4)}
+.btn-secondary{background:var(--primary-light);color:var(--primary)}
+.btn-secondary:hover{background:#FFD9CC}
+.btn-ghost{background:transparent;color:var(--text-light);padding:8px 12px}
+.btn-ghost:hover{color:var(--text);background:rgba(0,0,0,0.04)}
+.btn-danger{background:var(--danger-light);color:var(--danger)}
+.btn-danger:hover{background:#FBDAD5}
+.btn-sm{padding:5px 12px;font-size:13px}
+.btn:disabled{opacity:.5;cursor:not-allowed;transform:none!important}
+
+/* ==================== 主内容 ==================== */
+.main-content{max-width:var(--max-w);margin:0 auto;padding:24px 20px 80px}
+.page{display:none;animation:fadeIn .3s ease}
+.page.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+.page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px}
+.page-title{font-size:22px;font-weight:700}
+.page-subtitle{font-size:13px;color:var(--text-muted);margin-top:2px}
+
+/* ==================== 统计卡片 ==================== */
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px}
+.stat-card{
+  background:var(--card-bg);border-radius:var(--radius);padding:18px;
+  box-shadow:var(--shadow);display:flex;flex-direction:column;gap:6px;
+  transition:transform .2s;position:relative;overflow:hidden;
+}
+.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--primary-gradient)}
+.stat-card:hover{transform:translateY(-2px)}
+.stat-icon{font-size:24px}
+.stat-label{font-size:12px;color:var(--text-muted)}
+.stat-value{font-size:24px;font-weight:700;color:var(--text)}
+.stat-unit{font-size:13px;color:var(--text-light);font-weight:400;margin-left:3px}
+
+/* ==================== 评价提示框 ==================== */
+.evaluations{margin-bottom:20px;display:flex;flex-direction:column;gap:8px}
+.eval-item{
+  padding:12px 16px;border-radius:var(--radius-sm);font-size:14px;
+  display:flex;align-items:center;gap:8px;
+}
+.eval-warn{background:var(--warning-light);color:#B8740A;border-left:3px solid var(--warning)}
+.eval-good{background:var(--success-light);color:#009378;border-left:3px solid var(--success)}
+.eval-info{background:var(--info-light);color:#2070A8;border-left:3px solid var(--info)}
+
+/* ==================== 餐次分组与记录列表 ==================== */
+.meal-group{margin-bottom:20px}
+.meal-group-header{
+  display:flex;align-items:center;gap:8px;margin-bottom:10px;
+  font-size:15px;font-weight:600;color:var(--text);
+}
+.meal-group-header .group-icon{font-size:18px}
+.meal-group-header .group-stats{margin-left:auto;font-size:13px;color:var(--text-muted);font-weight:400}
+
+.meal-card{
+  background:var(--card-bg);border-radius:var(--radius);padding:14px 16px;
+  box-shadow:var(--shadow);margin-bottom:8px;display:flex;align-items:center;gap:12px;
+  transition:all .2s;border:1px solid transparent;
+}
+.meal-card:hover{border-color:var(--primary-light);box-shadow:0 4px 16px rgba(0,0,0,0.08)}
+.meal-card-left{flex:1;min-width:0}
+.meal-name{font-size:15px;font-weight:600;margin-bottom:4px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.meal-name .draft-badge{font-size:11px;background:var(--warning-light);color:var(--warning);padding:2px 6px;border-radius:4px;font-weight:500}
+.meal-meta{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:13px;color:var(--text-light)}
+.meal-meta span{display:inline-flex;align-items:center;gap:3px}
+.meal-tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
+.tag-chip{font-size:11px;padding:2px 8px;border-radius:10px;background:var(--primary-light);color:var(--primary-dark);font-weight:500}
+.meal-actions{display:flex;gap:4px;flex-shrink:0}
+.icon-btn{width:32px;height:32px;border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;font-size:14px;background:transparent;color:var(--text-muted);transition:all .2s}
+.icon-btn:hover{background:var(--bg);color:var(--text)}
+.icon-btn.danger:hover{background:var(--danger-light);color:var(--danger)}
+
+/* ==================== 空状态 ==================== */
+.empty-state{text-align:center;padding:60px 20px;color:var(--text-muted)}
+.empty-state .empty-icon{font-size:56px;margin-bottom:16px;opacity:.6}
+.empty-state .empty-text{font-size:15px;margin-bottom:20px}
+.empty-state .empty-hint{font-size:13px;color:var(--text-muted)}
+
+/* ==================== 加载状态 ==================== */
+.loading{text-align:center;padding:40px 20px;color:var(--text-muted)}
+.spinner{width:32px;height:32px;border:3px solid var(--border);border-top-color:var(--primary);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 12px}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ==================== 周报 ==================== */
+.section-card{background:var(--card-bg);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow);margin-bottom:16px}
+.section-title{font-size:16px;font-weight:600;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+
+.chart{display:flex;align-items:flex-end;gap:6px;height:180px;padding:10px 0}
+.bar-col{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:6px;min-width:0}
+.bar-value{font-size:11px;color:var(--text-light);font-weight:600;white-space:nowrap}
+.bar{width:80%;max-width:36px;background:var(--primary-gradient);border-radius:4px 4px 0 0;transition:height .6s cubic-bezier(.4,0,.2,1);min-height:3px;cursor:pointer;position:relative}
+.bar:hover{filter:brightness(1.1)}
+.bar.today{background:linear-gradient(180deg,#E74C3C 0%,#FF6B35 100%);box-shadow:0 0 8px rgba(231,76,60,0.3)}
+.bar-label{font-size:11px;color:var(--text-muted);text-align:center;white-space:nowrap}
+.bar-label .day-num{display:block;font-weight:600;color:var(--text-light)}
+
+table.data-table{width:100%;border-collapse:collapse;font-size:14px}
+.data-table th{text-align:left;padding:10px 12px;background:var(--bg);color:var(--text-light);font-weight:600;font-size:13px;border-bottom:1px solid var(--border)}
+.data-table th:first-child{border-radius:var(--radius-sm) 0 0 0}
+.data-table th:last-child{border-radius:0 var(--radius-sm) 0 0}
+.data-table td{padding:10px 12px;border-bottom:1px solid var(--border)}
+.data-table tr:last-child td{border-bottom:none}
+.data-table tr:hover td{background:rgba(255,107,53,0.03)}
+
+.anomaly-item{display:flex;align-items:center;gap:8px;padding:10px 14px;background:var(--warning-light);border-radius:var(--radius-sm);margin-bottom:6px;font-size:14px;color:#B8740A}
+.anomaly-item .anomaly-date{font-size:12px;color:var(--text-muted);margin-left:auto;white-space:nowrap}
+
+.compare-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.compare-item{text-align:center;padding:14px;background:var(--bg);border-radius:var(--radius-sm)}
+.compare-label{font-size:12px;color:var(--text-muted);margin-bottom:4px}
+.compare-value{font-size:18px;font-weight:700}
+.compare-value.up{color:var(--danger)}
+.compare-value.down{color:var(--success)}
+.compare-value.flat{color:var(--text-muted)}
+
+/* ==================== 推荐 ==================== */
+.gap-card{padding:14px 16px;border-radius:var(--radius-sm);margin-bottom:8px;border-left:4px solid}
+.gap-mild{background:var(--info-light);border-color:var(--info)}
+.gap-moderate{background:var(--warning-light);border-color:var(--warning)}
+.gap-severe{background:var(--danger-light);border-color:var(--danger)}
+.gap-name{font-weight:600;margin-bottom:4px}
+.gap-desc{font-size:13px;color:var(--text-light)}
+.gap-bar{height:6px;background:rgba(0,0,0,0.06);border-radius:3px;margin-top:8px;overflow:hidden}
+.gap-bar-fill{height:100%;border-radius:3px;transition:width .6s}
+
+.reco-card{background:var(--card-bg);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow);margin-bottom:12px;border:1px solid var(--border)}
+.reco-card:hover{border-color:var(--primary-light)}
+.reco-text{font-size:14px;margin-bottom:10px;line-height:1.7}
+.reco-meal{display:flex;align-items:center;gap:10px;padding:10px;background:var(--bg);border-radius:var(--radius-sm);font-size:13px}
+.reco-meal .meal-icon{font-size:20px}
+.reco-meal .meal-info{flex:1}
+.reco-meal .meal-info .name{font-weight:600}
+.reco-meal .meal-info .detail{color:var(--text-muted);font-size:12px}
+.reco-reason{display:inline-block;font-size:11px;padding:2px 8px;border-radius:10px;background:var(--primary-light);color:var(--primary-dark);margin-top:6px}
+
+.reminder-item{padding:10px 14px;background:var(--info-light);border-radius:var(--radius-sm);margin-bottom:6px;font-size:14px;color:#2070A8;display:flex;align-items:center;gap:8px}
+
+/* ==================== 历史记录 ==================== */
+.history-controls{display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap;align-items:center}
+.history-controls .control-group{display:flex;align-items:center;gap:6px}
+.history-controls label{font-size:13px;color:var(--text-light);font-weight:500}
+.history-controls input[type=date],.history-controls select{
+  padding:6px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--card-bg);font-size:13px;color:var(--text);
+}
+
+.history-day{margin-bottom:20px}
+.history-day-header{display:flex;align-items:center;gap:10px;margin-bottom:10px;font-size:16px;font-weight:600;padding-bottom:8px;border-bottom:2px solid var(--primary-light)}
+.history-day-header .day-stats{margin-left:auto;font-size:13px;color:var(--text-muted);font-weight:400}
+
+.history-meal{background:var(--card-bg);border-radius:var(--radius-sm);margin-bottom:6px;overflow:hidden;box-shadow:var(--shadow)}
+.history-meal-head{display:flex;align-items:center;gap:10px;padding:12px 16px;cursor:pointer;transition:background .2s}
+.history-meal-head:hover{background:var(--bg)}
+.history-meal-head .hm-time{font-size:13px;color:var(--text-muted);min-width:45px}
+.history-meal-head .hm-name{font-weight:600;flex:1;font-size:14px}
+.history-meal-head .hm-cal{font-size:13px;color:var(--primary);font-weight:600}
+.history-meal-head .hm-arrow{color:var(--text-muted);transition:transform .2s;font-size:12px}
+.history-meal.expanded .hm-arrow{transform:rotate(180deg)}
+.history-meal-detail{display:none;padding:0 16px 14px;border-top:1px solid var(--border);font-size:13px}
+.history-meal.expanded .history-meal-detail{display:block}
+.detail-row{display:flex;gap:8px;padding:6px 0}
+.detail-row .dl{color:var(--text-muted);min-width:70px}
+.detail-row .dv{color:var(--text);flex:1}
+.detail-actions{margin-top:8px;display:flex;gap:8px}
+
+/* ==================== 搜索 ==================== */
+.search-box{display:flex;gap:10px;margin-bottom:20px}
+.search-box input{flex:1;padding:10px 16px;border:1px solid var(--border);border-radius:var(--radius);font-size:15px;background:var(--card-bg);transition:border-color .2s}
+.search-box input:focus{border-color:var(--primary)}
+.search-box .btn{padding:10px 22px}
+
+.search-summary{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
+.summary-card{background:var(--card-bg);border-radius:var(--radius);padding:14px;text-align:center;box-shadow:var(--shadow)}
+.summary-card .sl{font-size:12px;color:var(--text-muted);margin-bottom:4px}
+.summary-card .sv{font-size:20px;font-weight:700;color:var(--primary)}
+
+.search-result{background:var(--card-bg);border-radius:var(--radius-sm);padding:12px 16px;margin-bottom:6px;box-shadow:var(--shadow);display:flex;align-items:center;gap:10px}
+.search-result .sr-date{font-size:12px;color:var(--text-muted);min-width:80px}
+.search-result .sr-name{font-weight:600;flex:1;font-size:14px}
+.search-result .sr-meta{font-size:13px;color:var(--text-light)}
+
+/* ==================== 模态框 ==================== */
+.modal-overlay{position:fixed;inset:0;background:rgba(45,52,54,0.5);backdrop-filter:blur(2px);z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px;animation:overlayIn .2s ease}
+@keyframes overlayIn{from{opacity:0}to{opacity:1}}
+.modal{background:var(--card-bg);border-radius:var(--radius);width:100%;max-width:520px;max-height:90vh;overflow-y:auto;box-shadow:var(--shadow-lg);animation:modalIn .25s cubic-bezier(.4,0,.2,1)}
+@keyframes modalIn{from{opacity:0;transform:scale(.95) translateY(10px)}to{opacity:1;transform:scale(1) translateY(0)}}
+.modal-header{display:flex;align-items:center;justify-content:space-between;padding:18px 20px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--card-bg);z-index:1;border-radius:var(--radius) var(--radius) 0 0}
+.modal-title{font-size:17px;font-weight:700}
+.modal-close{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;color:var(--text-muted);background:transparent}
+.modal-close:hover{background:var(--bg);color:var(--text)}
+.modal-body{padding:20px}
+.modal-footer{padding:14px 20px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:10px;position:sticky;bottom:0;background:var(--card-bg);border-radius:0 0 var(--radius) var(--radius)}
+
+/* ==================== 表单 ==================== */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.form-field{display:flex;flex-direction:column;gap:4px}
+.form-field.full{grid-column:1/-1}
+.form-field label{font-size:13px;color:var(--text-light);font-weight:500}
+.form-field label .req{color:var(--danger)}
+.form-field input,.form-field select,.form-field textarea{
+  padding:8px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);
+  background:var(--card-bg);color:var(--text);font-size:14px;transition:border-color .2s;
+}
+.form-field input:focus,.form-field select:focus,.form-field textarea:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(255,107,53,0.1)}
+.form-field textarea{resize:vertical;min-height:60px}
+.form-field .hint{font-size:11px;color:var(--text-muted)}
+
+/* ==================== 上传区 ==================== */
+.upload-zone{border:2px dashed var(--border);border-radius:var(--radius);padding:40px 20px;text-align:center;cursor:pointer;transition:all .2s}
+.upload-zone:hover,.upload-zone.dragover{border-color:var(--primary);background:var(--primary-light)}
+.upload-zone .uz-icon{font-size:48px;margin-bottom:12px}
+.upload-zone .uz-text{font-size:15px;color:var(--text);font-weight:500;margin-bottom:4px}
+.upload-zone .uz-hint{font-size:13px;color:var(--text-muted)}
+.upload-preview{margin-top:12px}
+.upload-preview img{max-width:100%;max-height:200px;border-radius:var(--radius-sm);display:block;margin:0 auto}
+
+.upload-loading{text-align:center;padding:30px 20px}
+.upload-loading .spinner{width:40px;height:40px}
+.upload-loading .ul-text{margin-top:12px;font-size:14px;color:var(--text-light)}
+.upload-loading .ul-sub{font-size:12px;color:var(--text-muted);margin-top:4px}
+
+/* ==================== Toast ==================== */
+.toast-container{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:2000;display:flex;flex-direction:column;gap:8px;align-items:center;pointer-events:none}
+.toast{padding:12px 22px;border-radius:var(--radius);font-size:14px;font-weight:500;color:#fff;box-shadow:var(--shadow-lg);animation:toastIn .3s cubic-bezier(.4,0,.2,1);display:flex;align-items:center;gap:8px;max-width:90vw}
+@keyframes toastIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+.toast.fade-out{animation:toastOut .3s ease forwards}
+@keyframes toastOut{to{opacity:0;transform:translateY(20px)}}
+.toast-success{background:var(--success)}
+.toast-error{background:var(--danger)}
+.toast-info{background:var(--text)}
+
+/* ==================== 引导页 ==================== */
+.onboarding{position:fixed;inset:0;background:var(--primary-gradient);z-index:2000;display:flex;align-items:center;justify-content:center;padding:20px}
+.onboarding-card{background:var(--card-bg);border-radius:20px;padding:40px 36px;max-width:420px;width:100%;text-align:center;box-shadow:var(--shadow-lg)}
+.onboarding-card .ob-icon{font-size:64px;margin-bottom:16px}
+.onboarding-card .ob-title{font-size:26px;font-weight:700;margin-bottom:8px;color:var(--text)}
+.onboarding-card .ob-desc{font-size:15px;color:var(--text-light);margin-bottom:28px;line-height:1.7}
+.onboarding-card .ob-actions{display:flex;flex-direction:column;gap:12px}
+.onboarding-card .ob-actions .btn{justify-content:center;padding:12px;font-size:15px}
+
+/* ==================== 设置页面 ==================== */
+.settings-warning{
+  background:var(--warning-light);color:#B8740A;border-left:3px solid var(--warning);
+  padding:14px 18px;border-radius:var(--radius-sm);margin-bottom:18px;
+  display:flex;align-items:center;gap:10px;font-size:14px;
+}
+.settings-card{
+  background:var(--card-bg);border-radius:var(--radius);padding:24px;
+  box-shadow:var(--shadow);margin-bottom:16px;
+}
+.settings-card .section-title{margin-bottom:18px}
+.settings-form{display:flex;flex-direction:column;gap:16px}
+.settings-form .form-field{gap:6px}
+.settings-form .form-field label{font-size:13px;color:var(--text);font-weight:600}
+.settings-form .form-field .hint{font-size:12px;color:var(--text-muted);margin-top:2px}
+.settings-form .form-field input,.settings-form .form-field select{
+  padding:10px 14px;border:1px solid var(--border);border-radius:var(--radius-sm);
+  background:var(--card-bg);color:var(--text);font-size:14px;transition:border-color .2s;width:100%;
+}
+.settings-form .form-field input:focus,.settings-form .form-field select:focus{
+  border-color:var(--primary);box-shadow:0 0 0 3px rgba(255,107,53,0.1);
+}
+.settings-actions{display:flex;gap:10px;margin-top:8px;flex-wrap:wrap}
+.settings-status{
+  margin-top:14px;padding:12px 16px;border-radius:var(--radius-sm);font-size:14px;
+  display:none;align-items:center;gap:8px;
+}
+.settings-status.show{display:flex}
+.settings-status.success{background:var(--success-light);color:#009378;border-left:3px solid var(--success)}
+.settings-status.error{background:var(--danger-light);color:var(--danger);border-left:3px solid var(--danger)}
+.settings-status.loading{background:var(--info-light);color:#2070A8;border-left:3px solid var(--info)}
+.settings-status .ss-spinner{
+  width:14px;height:14px;border:2px solid currentColor;border-top-color:transparent;
+  border-radius:50%;animation:spin .8s linear infinite;
+}
+.api-key-wrap{position:relative}
+.api-key-wrap .toggle-key{
+  position:absolute;right:8px;top:50%;transform:translateY(-50%);
+  background:none;border:none;color:var(--text-muted);font-size:16px;padding:4px;cursor:pointer;
+}
+.api-key-wrap .toggle-key:hover{color:var(--text)}
+
+/* ==================== 响应式 ==================== */
+@media(max-width:680px){
+  .navbar{padding:0 12px}
+  .nav-items{display:none}
+  .main-content{padding:16px 12px 90px}
+  .stats-row{grid-template-columns:repeat(2,1fr)}
+  .search-summary{grid-template-columns:repeat(2,1fr)}
+  .compare-grid{grid-template-columns:1fr}
+  .form-grid{grid-template-columns:1fr}
+  .bottom-nav{display:flex!important}
+  .page-header{flex-direction:column;align-items:flex-start}
+  .modal{max-width:100%}
+  .chart{height:140px;gap:3px}
+  .bar-label{font-size:10px}
+  .bar-value{font-size:10px}
+  .nav-right .btn-text{display:none}
+  .nav-right .btn{padding:8px 12px}
+}
+
+/* 底部导航（移动端） */
+.bottom-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--card-bg);border-top:1px solid var(--border);z-index:100;padding:6px 0;max-width:100%}
+.bottom-nav-inner{display:flex;justify-content:space-around;max-width:var(--max-w);margin:0 auto}
+.bottom-nav-item{display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 14px;font-size:11px;color:var(--text-muted);cursor:pointer;border:none;background:none;transition:color .2s}
+.bottom-nav-item.active{color:var(--primary)}
+.bottom-nav-item .bn-icon{font-size:20px}
+</style>
+</head>
+<body>
+
+<!-- ==================== 引导页 ==================== -->
+<div id="onboarding" class="onboarding hidden">
+  <div class="onboarding-card">
+    <div class="ob-icon">🍚</div>
+    <div class="ob-title">欢迎使用饭记！</div>
+    <div class="ob-desc">记录每一餐，了解自己的饮食习惯。<br>你可以先体验示例数据，或清空开始自己的记录。</div>
+    <div class="ob-actions">
+      <button class="btn btn-primary" onclick="initDemo()">体验示例数据</button>
+      <button class="btn btn-ghost" onclick="startEmpty()">清空开始</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== 主应用 ==================== -->
+<div id="app" class="hidden">
+  <!-- 导航栏 -->
+  <header class="navbar">
+    <div class="logo">🍚 饭记</div>
+    <nav class="nav-items">
+      <button class="nav-item active" data-page="today" onclick="switchPage('today')">今日</button>
+      <button class="nav-item" data-page="week" onclick="switchPage('week')">周报</button>
+      <button class="nav-item" data-page="recommend" onclick="switchPage('recommend')">推荐</button>
+      <button class="nav-item" data-page="history" onclick="switchPage('history')">历史</button>
+      <button class="nav-item" data-page="search" onclick="switchPage('search')">搜索</button>
+      <button class="nav-item" data-page="settings" onclick="switchPage('settings')">设置</button>
+    </nav>
+    <div class="nav-right">
+      <button class="btn btn-secondary" onclick="openAddMealModal()">
+        <span>✚</span><span class="btn-text">添加记录</span>
+      </button>
+      <button class="btn btn-primary" onclick="openUploadModal()">
+        <span>📷</span><span class="btn-text">上传截图</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- 主内容 -->
+  <main class="main-content">
+
+    <!-- 今日页面 -->
+    <section id="page-today" class="page active">
+      <div class="page-header">
+        <div>
+          <div class="page-title">今日饮食</div>
+          <div class="page-subtitle" id="today-date-label"></div>
+        </div>
+      </div>
+      <div id="today-content"></div>
+    </section>
+
+    <!-- 周报页面 -->
+    <section id="page-week" class="page">
+      <div class="page-header">
+        <div>
+          <div class="page-title">本周周报</div>
+          <div class="page-subtitle" id="week-date-label"></div>
+        </div>
+      </div>
+      <div id="week-content"></div>
+    </section>
+
+    <!-- 推荐页面 -->
+    <section id="page-recommend" class="page">
+      <div class="page-header">
+        <div>
+          <div class="page-title">智能推荐</div>
+          <div class="page-subtitle">基于你的饮食数据给出建议</div>
+        </div>
+      </div>
+      <div id="recommend-content"></div>
+    </section>
+
+    <!-- 历史页面 -->
+    <section id="page-history" class="page">
+      <div class="page-header">
+        <div>
+          <div class="page-title">历史记录</div>
+          <div class="page-subtitle">查看过往的饮食记录</div>
+        </div>
+      </div>
+      <div class="history-controls">
+        <div class="control-group">
+          <label>选择日期</label>
+          <input type="date" id="history-date" onchange="onHistoryDateChange(this.value)">
+        </div>
+        <div class="control-group">
+          <label>来源</label>
+          <select id="history-source" onchange="renderHistory()">
+            <option value="">全部</option>
+            <option value="takeout">外卖</option>
+            <option value="home">自炊</option>
+            <option value="restaurant">下馆子</option>
+          </select>
+        </div>
+        <div class="control-group">
+          <label>餐次</label>
+          <select id="history-meal-type" onchange="renderHistory()">
+            <option value="">全部</option>
+            <option value="breakfast">早餐</option>
+            <option value="lunch">午餐</option>
+            <option value="dinner">晚餐</option>
+            <option value="snack">加餐</option>
+          </select>
+        </div>
+        <button class="btn btn-ghost btn-sm" onclick="resetHistoryFilters()">重置</button>
+      </div>
+      <div id="history-content"></div>
+    </section>
+
+    <!-- 搜索页面 -->
+    <section id="page-search" class="page">
+      <div class="page-header">
+        <div>
+          <div class="page-title">搜索记录</div>
+          <div class="page-subtitle">输入关键词如"咖啡"、"奶茶"、"大餐"</div>
+        </div>
+      </div>
+      <div class="search-box">
+        <input type="text" id="search-input" placeholder="搜索食物名、标签、备注..." onkeydown="if(event.key==='Enter')doSearch()">
+        <button class="btn btn-primary" onclick="doSearch()">搜索</button>
+      </div>
+      <div id="search-content">
+        <div class="empty-state">
+          <div class="empty-icon">🔍</div>
+          <div class="empty-text">输入关键词开始搜索</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 设置页面 -->
+    <section id="page-settings" class="page">
+      <div class="page-header">
+        <div>
+          <div class="page-title">AI 设置</div>
+          <div class="page-subtitle">配置 AI API 以启用截图识别功能</div>
+        </div>
+      </div>
+      <div id="settings-content">
+        <div class="loading"><div class="spinner"></div><div>加载配置中...</div></div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- 底部导航（移动端） -->
+  <nav class="bottom-nav">
+    <div class="bottom-nav-inner">
+      <button class="bottom-nav-item active" data-page="today" onclick="switchPage('today')"><span class="bn-icon">📋</span>今日</button>
+      <button class="bottom-nav-item" data-page="week" onclick="switchPage('week')"><span class="bn-icon">📊</span>周报</button>
+      <button class="bottom-nav-item" data-page="recommend" onclick="switchPage('recommend')"><span class="bn-icon">💡</span>推荐</button>
+      <button class="bottom-nav-item" data-page="history" onclick="switchPage('history')"><span class="bn-icon">📅</span>历史</button>
+      <button class="bottom-nav-item" data-page="search" onclick="switchPage('search')"><span class="bn-icon">🔍</span>搜索</button>
+      <button class="bottom-nav-item" data-page="settings" onclick="switchPage('settings')"><span class="bn-icon">⚙️</span>设置</button>
+    </div>
+  </nav>
+</div>
+
+<!-- 模态框容器 -->
+<div id="modal-root"></div>
+<!-- Toast 容器 -->
+<div class="toast-container" id="toast-root"></div>
+
+<script>
+/* ==================== 全局状态 ==================== */
+const state = {
+  currentPage: 'today',
+  todayData: null,
+  weekData: null,
+  recommendData: null,
+  historyMeals: [],
+  historyMode: 'recent', // 'recent' | 'date'
+  searchResults: null,
+  settings: {providers: [], current: null, loaded: false},
+};
+
+const MEAL_TYPE_LABELS = {breakfast:'早餐',lunch:'午餐',dinner:'晚餐',snack:'加餐'};
+const MEAL_TYPE_ICONS  = {breakfast:'🌅',lunch:'☀️',dinner:'🌙',snack:'🍵'};
+const MEAL_TYPES_ORDER = ['breakfast','lunch','dinner','snack'];
+const SOURCE_LABELS = {takeout:'外卖',home:'自炊',restaurant:'下馆子'};
+const SOURCE_ICONS  = {takeout:'🛵',home:'🏠',restaurant:'🍽️'};
+
+/* ==================== 工具函数 ==================== */
+function $(s,p=document){return p.querySelector(s)}
+function $$(s,p=document){return p.querySelectorAll(s)}
+
+function escapeHtml(s){
+  if(s==null) return '';
+  return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function todayStr(){
+  const d=new Date();
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+
+function formatDate(dateStr){
+  if(!dateStr) return '';
+  const today=new Date();today.setHours(0,0,0,0);
+  const d=new Date(dateStr);d.setHours(0,0,0,0);
+  const diff=Math.round((today-d)/(86400000));
+  if(diff===0) return '今天';
+  if(diff===1) return '昨天';
+  if(diff===-1) return '明天';
+  return (d.getMonth()+1)+'月'+d.getDate()+'日';
+}
+
+function weekdayLabel(dateStr){
+  const days=['周日','周一','周二','周三','周四','周五','周六'];
+  return days[new Date(dateStr).getDay()];
+}
+
+function fmtCal(v){return Math.round(Number(v||0))}
+function fmtPrice(v){return Number(v||0).toFixed(1)}
+function fmtNum(v){
+  v=Number(v||0);
+  return v===Math.round(v)?String(v):v.toFixed(1);
+}
+
+function mealTypeLabel(mt){return MEAL_TYPE_LABELS[mt]||mt}
+function mealTypeIcon(mt){return MEAL_TYPE_ICONS[mt]||'🍽️'}
+function sourceLabel(s){return SOURCE_LABELS[s]||s}
+function sourceIcon(s){return SOURCE_ICONS[s]||'🍴'}
+
+/* ==================== API 封装 ==================== */
+async function api(path,options={}){
+  const opt={...options,headers:{'Content-Type':'application/json',...(options.headers||{})}};
+  if(options.body instanceof FormData){delete opt.headers['Content-Type']}
+  try{
+    const resp=await fetch(path,opt);
+    const text=await resp.text();
+    let data;
+    try{data=text?JSON.parse(text):{}}catch(e){data={raw:text}}
+    if(!resp.ok){
+      const msg=(data&&data.detail)||data.error||('请求失败 ('+resp.status+')');
+      throw new Error(msg);
+    }
+    return data;
+  }catch(e){
+    if(e.message==='Failed to fetch') throw new Error('网络连接失败');
+    throw e;
+  }
+}
+
+/* ==================== Toast ==================== */
+function showToast(msg,type='info'){
+  const root=$('#toast-root');
+  const t=document.createElement('div');
+  t.className='toast toast-'+type;
+  const icons={success:'✓',error:'✕',info:'ℹ'};
+  t.innerHTML='<span>'+(icons[type]||'')+'</span><span>'+escapeHtml(msg)+'</span>';
+  root.appendChild(t);
+  setTimeout(()=>{t.classList.add('fade-out');setTimeout(()=>t.remove(),300)},2800);
+}
+
+/* ==================== 模态框 ==================== */
+let _modalCloseHandler=null;
+function openModal(title,bodyHtml,footerHtml=''){
+  closeModal();
+  const root=$('#modal-root');
+  root.innerHTML=
+    '<div class="modal-overlay" id="modal-overlay">'+
+      '<div class="modal" id="modal-box">'+
+        '<div class="modal-header">'+
+          '<div class="modal-title">'+escapeHtml(title)+'</div>'+
+          '<button class="modal-close" onclick="closeModal()">✕</button>'+
+        '</div>'+
+        '<div class="modal-body">'+bodyHtml+'</div>'+
+        (footerHtml?'<div class="modal-footer">'+footerHtml+'</div>':'')+
+      '</div>'+
+    '</div>';
+  const overlay=$('#modal-overlay');
+  overlay.addEventListener('click',e=>{if(e.target===overlay)closeModal()});
+  _modalCloseHandler=e=>{if(e.key==='Escape')closeModal()};
+  document.addEventListener('keydown',_modalCloseHandler);
+}
+function closeModal(){
+  const root=$('#modal-root');
+  if(root.innerHTML) root.innerHTML='';
+  if(_modalCloseHandler){document.removeEventListener('keydown',_modalCloseHandler);_modalCloseHandler=null}
+}
+
+/* ==================== 页面切换 ==================== */
+function switchPage(name){
+  state.currentPage=name;
+  $$('.page').forEach(p=>p.classList.remove('active'));
+  $('#page-'+name).classList.add('active');
+  $$('.nav-item').forEach(n=>n.classList.toggle('active',n.dataset.page===name));
+  $$('.bottom-nav-item').forEach(n=>n.classList.toggle('active',n.dataset.page===name));
+  // 按需加载数据
+  if(name==='today') loadToday();
+  else if(name==='week') loadWeek();
+  else if(name==='recommend') loadRecommend();
+  else if(name==='history') loadHistory();
+  else if(name==='settings') loadSettings();
+}
+
+/* ==================== 今日页面 ==================== */
+async function loadToday(){
+  const c=$('#today-content');
+  c.innerHTML=loadingHtml('加载今日数据...');
+  try{
+    const data=await api('/api/today');
+    state.todayData=data;
+    renderToday();
+  }catch(e){
+    c.innerHTML=errorHtml(e.message);
+  }
+}
+
+function renderToday(){
+  const data=state.todayData;
+  if(!data) return;
+  $('#today-date-label').textContent=formatDate(data.date)+' · '+data.date;
+  const c=$('#today-content');
+
+  // 统计卡片
+  let html='<div class="stats-row">'+
+    statCard('🔥',fmtCal(data.total_calories),'kcal','总热量')+
+    statCard('💰',fmtPrice(data.total_price),'元','总支出')+
+    statCard('💪',fmtNum(data.total_protein),'g','蛋白质')+
+    statCard('🍽️',data.meal_count,'餐','餐次数')+
+  '</div>';
+
+  // 营养评价
+  if(data.evaluations&&data.evaluations.length){
+    html+='<div class="evaluations">';
+    data.evaluations.forEach(ev=>{
+      const cls=ev.includes('不错')||ev.includes('继续保持')||ev.includes('达标')?'eval-good':'eval-warn';
+      const icon=cls==='eval-good'?'✓':'⚠';
+      html+='<div class="eval-item '+cls+'"><span>'+icon+'</span><span>'+escapeHtml(ev)+'</span></div>';
+    });
+    html+='</div>';
+  }
+
+  // 按餐次分组
+  if(data.meal_count===0||!data.meals||!data.meals.length){
+    html+=emptyState('🥢','今天还没有记录','点击右上角上传截图或添加记录');
+  }else{
+    const byType={};
+    data.meals.forEach(m=>{
+      (byType[m.meal_type]=byType[m.meal_type]||[]).push(m);
+    });
+    MEAL_TYPES_ORDER.forEach(mt=>{
+      const items=byType[mt];
+      if(!items||!items.length) return;
+      const groupData=(data.by_meal_type||{})[mt]||{};
+      html+='<div class="meal-group">';
+      html+='<div class="meal-group-header"><span class="group-icon">'+mealTypeIcon(mt)+'</span>'+mealTypeLabel(mt)+
+            '<span class="group-stats">'+fmtCal(groupData.calories||0)+' kcal · ¥'+fmtPrice(groupData.price||0)+'</span></div>';
+      items.forEach(m=>{html+=mealCardHtml(m)});
+      html+='</div>';
+    });
+  }
+  c.innerHTML=html;
+}
+
+function statCard(icon,value,unit,label){
+  return '<div class="stat-card"><div class="stat-icon">'+icon+'</div>'+
+    '<div class="stat-label">'+label+'</div>'+
+    '<div class="stat-value">'+value+'<span class="stat-unit">'+unit+'</span></div></div>';
+}
+
+function mealCardHtml(m){
+  const tags=m.tags?m.tags.split(',').map(t=>t.trim()).filter(Boolean):[];
+  let html='<div class="meal-card" data-id="'+m.id+'">'+
+    '<div class="meal-card-left">'+
+      '<div class="meal-name">'+
+        '<span>'+escapeHtml(m.food_name)+'</span>'+
+        (m.status==='draft'?'<span class="draft-badge">草稿</span>':'')+
+      '</div>'+
+      '<div class="meal-meta">'+
+        '<span>'+sourceIcon(m.source)+' '+sourceLabel(m.source)+'</span>'+
+        (m.food_category?'<span>📂 '+escapeHtml(m.food_category)+'</span>':'')+
+        '<span>🔥 '+fmtCal(m.calories)+' kcal</span>'+
+        (m.price!=null?'<span>💰 ¥'+fmtPrice(m.price)+'</span>':'')+
+        (m.protein!=null?'<span>💪 '+fmtNum(m.protein)+'g</span>':'')+
+      '</div>';
+  if(tags.length){
+    html+='<div class="meal-tags">'+tags.map(t=>'<span class="tag-chip">'+escapeHtml(t)+'</span>').join('')+'</div>';
+  }
+  html+='</div>'+
+    '<div class="meal-actions">'+
+      '<button class="icon-btn" title="编辑" onclick="openEditMealModal('+m.id+')">✏️</button>'+
+      '<button class="icon-btn danger" title="删除" onclick="deleteMeal('+m.id+')">🗑️</button>'+
+    '</div>'+
+  '</div>';
+  return html;
+}
+
+/* ==================== 周报页面 ==================== */
+async function loadWeek(){
+  const c=$('#week-content');
+  c.innerHTML=loadingHtml('生成本周周报...');
+  try{
+    const data=await api('/api/week');
+    state.weekData=data;
+    renderWeek();
+  }catch(e){
+    c.innerHTML=errorHtml(e.message);
+  }
+}
+
+function renderWeek(){
+  const data=state.weekData;
+  if(!data) return;
+  $('#week-date-label').textContent=data.week_start+' ~ '+data.week_end;
+  const c=$('#week-content');
+
+  // 概览卡片
+  let html='<div class="stats-row">'+
+    statCard('📊',fmtCal(data.total_calories),'kcal','本周总热量')+
+    statCard('📈',fmtCal(data.avg_daily_calories),'kcal','日均热量')+
+    statCard('💸',fmtPrice(data.total_price),'元','本周总支出')+
+    statCard('💵',fmtPrice(data.avg_daily_price),'元','日均支出')+
+  '</div>';
+
+  // 评价
+  if(data.evaluations&&data.evaluations.length){
+    html+='<div class="evaluations">';
+    data.evaluations.forEach(ev=>{
+      html+='<div class="eval-item eval-info"><span>💡</span><span>'+escapeHtml(ev)+'</span></div>';
+    });
+    html+='</div>';
+  }
+
+  // 每日热量趋势柱状图
+  html+='<div class="section-card"><div class="section-title">📈 每日热量趋势</div>';
+  if(data.daily_data&&data.daily_data.length){
+    const maxCal=Math.max(...data.daily_data.map(d=>d.calories),1);
+    const todayDate=todayStr();
+    html+='<div class="chart">';
+    data.daily_data.forEach(d=>{
+      const h=Math.max((d.calories/maxCal*100),2);
+      const isToday=d.date===todayDate;
+      html+='<div class="bar-col">'+
+        '<div class="bar-value">'+(d.calories>0?fmtCal(d.calories):'-')+'</div>'+
+        '<div class="bar'+(isToday?' today':'')+'" style="height:'+h+'%" title="'+d.date+': '+fmtCal(d.calories)+' kcal"></div>'+
+        '<div class="bar-label">'+weekdayLabel(d.date)+'<span class="day-num">'+parseInt(d.date.slice(8))+'</span></div>'+
+      '</div>';
+    });
+    html+='</div>';
+  }else{
+    html+=emptyState('📊','暂无数据','本周还没有记录');
+  }
+  html+='</div>';
+
+  // tag 统计表格
+  const tags=data.tags||{};
+  const tagList=Object.entries(tags).map(([tag,info])=>({tag,...info}));
+  if(tagList.length){
+    html+='<div class="section-card"><div class="section-title">🏷️ 标签统计</div>';
+    html+='<table class="data-table"><thead><tr><th>标签</th><th>出现次数</th><th>对应支出</th></tr></thead><tbody>';
+    tagList.forEach(t=>{
+      html+='<tr><td><span class="tag-chip">'+escapeHtml(t.tag)+'</span></td><td>'+t.count+' 次</td><td>¥'+fmtPrice(t.total_price)+'</td></tr>';
+    });
+    html+='</tbody></table></div>';
+  }
+
+  // 异常标注
+  if(data.anomalies&&data.anomalies.length){
+    html+='<div class="section-card"><div class="section-title">⚠️ 异常标注</div>';
+    data.anomalies.forEach(a=>{
+      html+='<div class="anomaly-item"><span>⚠️</span><span>'+escapeHtml(a.description)+'</span><span class="anomaly-date">'+formatDate(a.date)+'</span></div>';
+    });
+    html+='</div>';
+  }
+
+  // 与上周对比
+  if(data.comparison){
+    const cmp=data.comparison;
+    html+='<div class="section-card"><div class="section-title">📊 与上周对比</div><div class="compare-grid">'+
+      compareItem('热量',cmp.calories_change)+
+      compareItem('支出',cmp.price_change)+
+      compareItem('蛋白质',cmp.protein_change)+
+    '</div></div>';
+  }
+
+  c.innerHTML=html;
+}
+
+function compareItem(label,change){
+  let cls='flat',arrow='',val='--';
+  if(change===null||change===undefined){val='无数据'}
+  else if(change>0){cls='up';arrow='↑';val='+'+change+'%'}
+  else if(change<0){cls='down';arrow='↓';val=change+'%'}
+  else{val='0%'}
+  return '<div class="compare-item"><div class="compare-label">'+label+'</div><div class="compare-value '+cls+'">'+arrow+' '+val+'</div></div>';
+}
+
+/* ==================== 推荐页面 ==================== */
+async function loadRecommend(){
+  const c=$('#recommend-content');
+  c.innerHTML=loadingHtml('生成推荐中...');
+  try{
+    const data=await api('/api/recommend');
+    state.recommendData=data;
+    renderRecommend();
+  }catch(e){
+    c.innerHTML=errorHtml(e.message);
+  }
+}
+
+function renderRecommend(){
+  const data=state.recommendData;
+  if(!data) return;
+  const c=$('#recommend-content');
+  let html='';
+
+  // 今日提醒
+  if(data.reminders&&data.reminders.length){
+    html+='<div class="section-card"><div class="section-title">⏰ 今日提醒</div>';
+    data.reminders.forEach(r=>{
+      html+='<div class="reminder-item"><span>⏰</span><span>'+escapeHtml(r)+'</span></div>';
+    });
+    html+='</div>';
+  }
+
+  // 营养缺口
+  if(data.nutrient_gaps&&data.nutrient_gaps.length){
+    html+='<div class="section-card"><div class="section-title">🔍 营养缺口分析</div>';
+    data.nutrient_gaps.forEach(g=>{
+      const cls='gap-'+(g.severity||'mild');
+      const pct=Math.round((g.avg_intake/g.recommended)*100);
+      html+='<div class="gap-card '+cls+'">'+
+        '<div class="gap-name">'+escapeHtml(g.display_name)+'缺口 <span style="font-size:13px;color:var(--text-muted)">（缺 '+fmtNum(g.deficiency)+g.unit+'）</span></div>'+
+        '<div class="gap-desc">'+escapeHtml(g.description)+'</div>'+
+        '<div class="gap-bar"><div class="gap-bar-fill" style="width:'+pct+'%;background:var(--primary)"></div></div>'+
+        '<div style="font-size:11px;color:var(--text-muted);margin-top:4px">日均摄入 '+fmtNum(g.avg_intake)+g.unit+' / 推荐 '+fmtNum(g.recommended)+g.unit+'</div>'+
+      '</div>';
+    });
+    html+='</div>';
+  }
+
+  // 推荐列表
+  if(data.recommendations&&data.recommendations.length){
+    html+='<div class="section-card"><div class="section-title">💡 为你推荐</div>';
+    data.recommendations.forEach(r=>{
+      const m=r.meal||{};
+      html+='<div class="reco-card">'+
+        '<div class="reco-text">'+escapeHtml(r.recommendation_text)+'</div>'+
+        '<div class="reco-meal">'+
+          '<span class="meal-icon">'+sourceIcon(m.source)+'</span>'+
+          '<div class="meal-info">'+
+            '<div class="name">'+escapeHtml(m.food_name||'')+'</div>'+
+            '<div class="detail">'+mealTypeLabel(m.meal_type||'')+' · '+(m.food_category||'')+' · 🔥 '+fmtCal(m.calories)+' kcal'+(m.price!=null?' · ¥'+fmtPrice(m.price):'')+'</div>'+
+          '</div>'+
+        '</div>'+
+        '<span class="reco-reason">'+escapeHtml(r.reason)+'</span>'+
+      '</div>';
+    });
+    html+='</div>';
+  }
+
+  // 数据不足时的通用建议
+  if(data.general_advice){
+    html+='<div class="section-card"><div class="section-title">💡 通用建议</div>'+
+      '<div class="eval-item eval-info" style="border-left:3px solid var(--info)"><span>💡</span><span>'+escapeHtml(data.general_advice)+'</span></div>'+
+    '</div>';
+  }
+
+  // 全空
+  if(!html){
+    html=emptyState('💡','暂无推荐','记录更多数据后会有个性化推荐');
+  }
+
+  c.innerHTML=html;
+}
+
+/* ==================== 历史记录页面 ==================== */
+async function loadHistory(){
+  const c=$('#history-content');
+  c.innerHTML=loadingHtml('加载历史记录...');
+  const dateInput=$('#history-date');
+  if(!dateInput.value){
+    // 默认查看最近7天
+    state.historyMode='recent';
+  }
+  try{
+    let meals;
+    if(state.historyMode==='date'&&dateInput.value){
+      const resp=await api('/api/meals?date='+dateInput.value+'&limit=1000');
+      meals=resp.meals||[];
+    }else{
+      const end=todayStr();
+      const startD=new Date();startD.setDate(startD.getDate()-6);
+      const start=startD.getFullYear()+'-'+String(startD.getMonth()+1).padStart(2,'0')+'-'+String(startD.getDate()).padStart(2,'0');
+      const resp=await api('/api/meals?start_date='+start+'&end_date='+end+'&limit=1000');
+      meals=resp.meals||[];
+    }
+    state.historyMeals=meals;
+    renderHistory();
+  }catch(e){
+    c.innerHTML=errorHtml(e.message);
+  }
+}
+
+function onHistoryDateChange(val){
+  state.historyMode=val?'date':'recent';
+  loadHistory();
+}
+
+function resetHistoryFilters(){
+  $('#history-date').value='';
+  $('#history-source').value='';
+  $('#history-meal-type').value='';
+  state.historyMode='recent';
+  loadHistory();
+}
+
+function renderHistory(){
+  const c=$('#history-content');
+  let meals=state.historyMeals;
+  // 筛选
+  const sf=$('#history-source').value;
+  const mf=$('#history-meal-type').value;
+  if(sf) meals=meals.filter(m=>m.source===sf);
+  if(mf) meals=meals.filter(m=>m.meal_type===mf);
+
+  if(!meals.length){
+    c.innerHTML=emptyState('📅','没有匹配的记录','试试调整筛选条件或选择其他日期');
+    return;
+  }
+
+  // 按日期分组（倒序）
+  const byDate={};
+  meals.forEach(m=>{(byDate[m.date]=byDate[m.date]||[]).push(m)});
+  const dates=Object.keys(byDate).sort((a,b)=>b.localeCompare(a));
+
+  let html='';
+  dates.forEach(d=>{
+    const dayMeals=byDate[d];
+    const totalCal=dayMeals.reduce((s,m)=>s+Number(m.calories||0),0);
+    const totalPrice=dayMeals.reduce((s,m)=>s+Number(m.price||0),0);
+    html+='<div class="history-day">';
+    html+='<div class="history-day-header"><span>'+formatDate(d)+'</span><span style="font-size:13px;color:var(--text-muted)">'+weekdayLabel(d)+'</span><span class="day-stats">'+fmtCal(totalCal)+' kcal · ¥'+fmtPrice(totalPrice)+' · '+dayMeals.length+'餐</span></div>';
+    // 按时间排序
+    dayMeals.sort((a,b)=>(a.time||'').localeCompare(b.time||''));
+    dayMeals.forEach(m=>{
+      html+=historyMealHtml(m);
+    });
+    html+='</div>';
+  });
+  c.innerHTML=html;
+}
+
+function historyMealHtml(m){
+  const tags=m.tags?m.tags.split(',').map(t=>t.trim()).filter(Boolean):[];
+  let html='<div class="history-meal" data-id="'+m.id+'">'+
+    '<div class="history-meal-head" onclick="this.parentElement.classList.toggle(\'expanded\')">'+
+      '<span class="hm-time">'+(m.time||'--:--')+'</span>'+
+      '<span class="hm-name">'+mealTypeIcon(m.meal_type)+' '+escapeHtml(m.food_name)+'</span>'+
+      '<span class="hm-cal">'+fmtCal(m.calories)+' kcal</span>'+
+      '<span class="hm-arrow">▼</span>'+
+    '</div>'+
+    '<div class="history-meal-detail">'+
+      detailRow('来源',sourceIcon(m.source)+' '+sourceLabel(m.source))+
+      (m.food_category?detailRow('类别',escapeHtml(m.food_category)):'')+
+      detailRow('热量',fmtCal(m.calories)+' kcal')+
+      (m.protein!=null?detailRow('蛋白质',fmtNum(m.protein)+' g'):'')+
+      (m.carbs!=null?detailRow('碳水',fmtNum(m.carbs)+' g'):'')+
+      (m.fat!=null?detailRow('脂肪',fmtNum(m.fat)+' g'):'')+
+      (m.price!=null?detailRow('价格','¥'+fmtPrice(m.price)):'')+
+      (tags.length?detailRow('标签',tags.map(t=>'<span class="tag-chip">'+escapeHtml(t)+'</span>').join(' ')):'')+
+      (m.notes?detailRow('备注',escapeHtml(m.notes)):'')+
+      (m.status==='draft'?detailRow('状态','<span style="color:var(--warning)">草稿</span>'):'')+
+      '<div class="detail-actions">'+
+        '<button class="btn btn-secondary btn-sm" onclick="event.stopPropagation();openEditMealModal('+m.id+')">编辑</button>'+
+        '<button class="btn btn-danger btn-sm" onclick="event.stopPropagation();deleteMeal('+m.id+')">删除</button>'+
+      '</div>'+
+    '</div>'+
+  '</div>';
+  return html;
+}
+
+function detailRow(label,value){
+  return '<div class="detail-row"><span class="dl">'+label+'</span><span class="dv">'+value+'</span></div>';
+}
+
+/* ==================== 搜索 ==================== */
+async function doSearch(){
+  const q=$('#search-input').value.trim();
+  const c=$('#search-content');
+  if(!q){
+    c.innerHTML='<div class="empty-state"><div class="empty-icon">🔍</div><div class="empty-text">输入关键词开始搜索</div></div>';
+    return;
+  }
+  c.innerHTML=loadingHtml('搜索"'+escapeHtml(q)+'"中...');
+  try{
+    const data=await api('/api/search',{method:'POST',body:JSON.stringify({query:q})});
+    state.searchResults=data;
+    renderSearch();
+  }catch(e){
+    c.innerHTML=errorHtml(e.message);
+  }
+}
+
+function renderSearch(){
+  const data=state.searchResults;
+  if(!data) return;
+  const c=$('#search-content');
+  const results=data.results||[];
+  const s=data.summary||{};
+
+  if(!results.length){
+    c.innerHTML=emptyState('🔍','没有找到相关记录','试试其他关键词');
+    return;
+  }
+
+  let html='';
+  // 汇总
+  const dr=s.date_range||{};
+  html+='<div class="search-summary">'+
+    '<div class="summary-card"><div class="sl">总次数</div><div class="sv">'+s.total_count+'</div></div>'+
+    '<div class="summary-card"><div class="sl">总支出</div><div class="sv">¥'+fmtPrice(s.total_price)+'</div></div>'+
+    '<div class="summary-card"><div class="sl">总热量</div><div class="sv">'+fmtCal(s.total_calories)+'</div></div>'+
+    '<div class="summary-card"><div class="sl">日期范围</div><div class="sv" style="font-size:13px">'+(dr.start?formatDate(dr.start)+'~'+formatDate(dr.end):'-')+'</div></div>'+
+  '</div>';
+
+  // 结果列表
+  html+='<div class="section-title" style="margin-bottom:12px">找到 '+results.length+' 条结果</div>';
+  results.forEach(m=>{
+    html+='<div class="search-result">'+
+      '<span class="sr-date">'+formatDate(m.date)+' '+weekdayLabel(m.date)+'</span>'+
+      '<div class="sr-name">'+mealTypeIcon(m.meal_type)+' '+escapeHtml(m.food_name)+'</div>'+
+      '<span class="sr-meta">'+sourceIcon(m.source)+' '+sourceLabel(m.source)+' · 🔥'+fmtCal(m.calories)+'kcal'+(m.price!=null?' · ¥'+fmtPrice(m.price):'')+'</span>'+
+    '</div>';
+  });
+  c.innerHTML=html;
+}
+
+/* ==================== 餐记录表单 ==================== */
+function mealFormHtml(meal){
+  meal=meal||{};
+  const d=meal.date||todayStr();
+  return '<div class="form-grid">'+
+    field('date','日期',dateInput('date',d),false,true)+
+    field('time','时间',textInput('time',meal.time||'','HH:MM'))+
+    field('meal_type','餐次',selectInput('meal_type',meal.meal_type||'lunch',MEAL_TYPE_LABELS),false,true)+
+    field('source','来源',selectInput('source',meal.source||'takeout',SOURCE_LABELS),false,true)+
+    field('food_name','食物名',textInput('food_name',meal.food_name||'','如：拿铁咖啡+三明治'),true,true)+
+    field('food_category','类别',textInput('food_category',meal.food_category||'','如：主食/肉类/蔬菜/饮品/水果'))+
+    field('calories','热量',numInput('calories',meal.calories,'kcal'))+
+    field('protein','蛋白质',numInput('protein',meal.protein,'g'))+
+    field('carbs','碳水',numInput('carbs',meal.carbs,'g'))+
+    field('fat','脂肪',numInput('fat',meal.fat,'g'))+
+    field('price','价格',numInput('price',meal.price,'元'))+
+    '<div class="form-field full"><label>标签</label><input type="text" id="ff-tags" value="'+escapeHtml(meal.tags||'')+'" placeholder="多个标签用逗号分隔，如：咖啡,大餐"><div class="hint">用逗号分隔多个标签</div></div>'+
+    '<div class="form-field full"><label>备注</label><textarea id="ff-notes" placeholder="可选备注...">'+escapeHtml(meal.notes||'')+'</textarea></div>'+
+  '</div>';
+}
+
+function field(id,label,inner,full,req){
+  return '<div class="form-field'+(full?' full':'')+'"><label for="ff-'+id+'">'+label+(req?' <span class="req">*</span>':'')+'</label>'+inner+'</div>';
+}
+function textInput(id,val,ph,req){
+  return '<input type="text" id="ff-'+id+'" value="'+escapeHtml(val)+'" placeholder="'+escapeHtml(ph||'')+'"'+(req?' required':'')+'>';
+}
+function numInput(id,val,unit){
+  return '<input type="number" step="any" id="ff-'+id+'" value="'+(val!=null&&val!==''?val:'')+'" placeholder="0">';
+}
+function dateInput(id,val){
+  return '<input type="date" id="ff-'+id+'" value="'+escapeHtml(val)+'">';
+}
+function selectInput(id,val,options){
+  let h='<select id="ff-'+id+'">';
+  for(const k in options){h+='<option value="'+k+'"'+(val===k?' selected':'')+'>'+options[k]+'</option>'}
+  h+='</select>';
+  return h;
+}
+
+function readMealForm(){
+  const get=id=>{const el=$('#ff-'+id);return el?el.value.trim():''};
+  const getNum=id=>{const v=get(id);return v===''?null:Number(v)};
+  return {
+    date:get('date'),
+    time:get('time')||null,
+    meal_type:get('meal_type'),
+    source:get('source'),
+    food_name:get('food_name'),
+    food_category:get('food_category')||null,
+    calories:getNum('calories'),
+    protein:getNum('protein'),
+    carbs:getNum('carbs'),
+    fat:getNum('fat'),
+    price:getNum('price'),
+    tags:get('tags')||null,
+    notes:get('notes')||null,
+  };
+}
+
+/* ==================== 添加记录 ==================== */
+function openAddMealModal(){
+  const body=mealFormHtml({});
+  const footer='<button class="btn btn-ghost" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="saveAddMeal()">保存</button>';
+  openModal('添加记录',body,footer);
+}
+
+async function saveAddMeal(){
+  const data=readMealForm();
+  if(!data.date||!data.meal_type||!data.source||!data.food_name){
+    showToast('请填写必填字段','error');return;
+  }
+  data.status='confirmed';
+  const btn=$$('.modal-footer .btn-primary')[0];
+  if(btn){btn.disabled=true;btn.textContent='保存中...'}
+  try{
+    await api('/api/meals',{method:'POST',body:JSON.stringify(data)});
+    closeModal();
+    showToast('记录已添加','success');
+    if(state.currentPage==='today') loadToday();
+    else switchPage('today');
+  }catch(e){
+    showToast(e.message,'error');
+    if(btn){btn.disabled=false;btn.textContent='保存'}
+  }
+}
+
+/* ==================== 编辑记录 ==================== */
+async function openEditMealModal(id){
+  openModal('编辑记录',loadingHtml('加载记录...'),'');
+  try{
+    const resp=await api('/api/meals/'+id);
+    const meal=resp.meal;
+    const body=mealFormHtml(meal);
+    const footer='<button class="btn btn-ghost" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="saveEditMeal('+id+')">保存</button>';
+    openModal('编辑记录',body,footer);
+  }catch(e){
+    showToast(e.message,'error');
+    closeModal();
+  }
+}
+
+async function saveEditMeal(id){
+  const data=readMealForm();
+  if(!data.date||!data.meal_type||!data.source||!data.food_name){
+    showToast('请填写必填字段','error');return;
+  }
+  // 编辑时如果是草稿，保存后改为已确认
+  data.status='confirmed';
+  const btn=$$('.modal-footer .btn-primary')[0];
+  if(btn){btn.disabled=true;btn.textContent='保存中...'}
+  try{
+    await api('/api/meals/'+id,{method:'PUT',body:JSON.stringify(data)});
+    closeModal();
+    showToast('记录已更新','success');
+    refreshCurrentPage();
+  }catch(e){
+    showToast(e.message,'error');
+    if(btn){btn.disabled=false;btn.textContent='保存'}
+  }
+}
+
+/* ==================== 删除记录 ==================== */
+async function deleteMeal(id){
+  if(!confirm('确定删除这条记录吗？')) return;
+  try{
+    await api('/api/meals/'+id,{method:'DELETE'});
+    showToast('记录已删除','success');
+    refreshCurrentPage();
+  }catch(e){
+    showToast(e.message,'error');
+  }
+}
+
+function refreshCurrentPage(){
+  if(state.currentPage==='today') loadToday();
+  else if(state.currentPage==='week') loadWeek();
+  else if(state.currentPage==='recommend') loadRecommend();
+  else if(state.currentPage==='history') loadHistory();
+  else if(state.currentPage==='search'&&state.searchResults) doSearch();
+}
+
+/* ==================== 截图上传 ==================== */
+function openUploadModal(){
+  const body=
+    '<div id="upload-area">'+
+      '<div class="upload-zone" id="upload-zone">'+
+        '<div class="uz-icon">📷</div>'+
+        '<div class="uz-text">拖拽截图到此处，或点击选择文件</div>'+
+        '<div class="uz-hint">支持 JPG / PNG 格式的外卖、餐饮截图</div>'+
+        '<input type="file" id="upload-input" accept="image/*" style="display:none">'+
+      '</div>'+
+    '</div>';
+  openModal('上传截图识别',body,'');
+  const zone=$('#upload-zone');
+  const input=$('#upload-input');
+  zone.addEventListener('click',()=>input.click());
+  input.addEventListener('change',e=>{if(e.target.files[0])handleUpload(e.target.files[0])});
+  zone.addEventListener('dragover',e=>{e.preventDefault();zone.classList.add('dragover')});
+  zone.addEventListener('dragleave',()=>zone.classList.remove('dragover'));
+  zone.addEventListener('drop',e=>{
+    e.preventDefault();zone.classList.remove('dragover');
+    if(e.dataTransfer.files[0])handleUpload(e.dataTransfer.files[0]);
+  });
+}
+
+async function handleUpload(file){
+  // 显示预览 + loading
+  const modalBody=$$('.modal-body')[0];
+  if(!modalBody) return;
+  const previewUrl=URL.createObjectURL(file);
+  modalBody.innerHTML=
+    '<div class="upload-preview"><img src="'+previewUrl+'" alt="预览"></div>'+
+    '<div class="upload-loading">'+
+      '<div class="spinner"></div>'+
+      '<div class="ul-text">AI 识别中...</div>'+
+      '<div class="ul-sub">正在分析截图内容，请稍候</div>'+
+    '</div>';
+  const fd=new FormData();
+  fd.append('file',file);
+  try{
+    const resp=await api('/api/screenshot',{method:'POST',body:fd});
+    if(!resp.success){
+      showToast(resp.error||'识别失败','error');
+      closeModal();
+      return;
+    }
+    // 显示可编辑草稿表单
+    const draft={
+      date:todayStr(),
+      time:resp.data.time||null,
+      meal_type:resp.data.meal_type||'snack',
+      source:resp.data.source||'takeout',
+      food_name:resp.data.food_name||'',
+      food_category:resp.data.food_category||null,
+      calories:resp.data.calories,
+      protein:resp.data.protein,
+      carbs:resp.data.carbs,
+      fat:resp.data.fat,
+      price:resp.data.price,
+      tags:resp.data.tags||null,
+      notes:resp.data.notes||null,
+    };
+    const body=
+      '<div style="margin-bottom:14px;padding:10px 14px;background:var(--success-light);border-radius:var(--radius-sm);font-size:13px;color:#009378;display:flex;align-items:center;gap:6px">'+
+        '<span>✓</span><span>AI识别成功！请核对并修正以下信息：</span>'+
+      '</div>'+
+      mealFormHtml(draft);
+    const footer='<button class="btn btn-ghost" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="saveDraftMeal('+resp.meal_id+')">确认保存</button>';
+    // 更新模态框内容
+    openModal('确认识别结果',body,footer);
+    URL.revokeObjectURL(previewUrl);
+  }catch(e){
+    showToast(e.message,'error');
+    closeModal();
+  }
+}
+
+async function saveDraftMeal(id){
+  const data=readMealForm();
+  if(!data.date||!data.meal_type||!data.source||!data.food_name){
+    showToast('请填写必填字段','error');return;
+  }
+  data.status='confirmed';
+  const btn=$$('.modal-footer .btn-primary')[0];
+  if(btn){btn.disabled=true;btn.textContent='保存中...'}
+  try{
+    await api('/api/meals/'+id,{method:'PUT',body:JSON.stringify(data)});
+    closeModal();
+    showToast('记录已保存','success');
+    if(state.currentPage==='today') loadToday();
+    else switchPage('today');
+  }catch(e){
+    showToast(e.message,'error');
+    if(btn){btn.disabled=false;btn.textContent='确认保存'}
+  }
+}
+
+/* ==================== 公共 HTML 片段 ==================== */
+function loadingHtml(msg){
+  return '<div class="loading"><div class="spinner"></div><div>'+escapeHtml(msg||'加载中...')+'</div></div>';
+}
+function errorHtml(msg){
+  return '<div class="empty-state"><div class="empty-icon">😵</div><div class="empty-text">加载失败</div><div class="empty-hint">'+escapeHtml(msg)+'</div></div>';
+}
+function emptyState(icon,text,hint){
+  return '<div class="empty-state"><div class="empty-icon">'+icon+'</div><div class="empty-text">'+escapeHtml(text)+'</div><div class="empty-hint">'+escapeHtml(hint||'')+'</div></div>';
+}
+
+/* ==================== 设置页面 ==================== */
+async function loadSettings(){
+  const c=$('#settings-content');
+  c.innerHTML=loadingHtml('加载配置中...');
+  try{
+    const [settingsResp,providersResp]=await Promise.all([
+      api('/api/settings'),
+      api('/api/providers'),
+    ]);
+    state.settings.current=settingsResp;
+    state.settings.providers=providersResp.providers||[];
+    state.settings.loaded=true;
+    renderSettings();
+  }catch(e){
+    c.innerHTML=errorHtml(e.message);
+  }
+}
+
+function renderSettings(){
+  const cur=state.settings.current||{};
+  const providers=state.settings.providers||[];
+  const c=$('#settings-content');
+  let html='';
+
+  // 未配置警告
+  if(!cur.is_configured){
+    html+='<div class="settings-warning"><span>⚠️</span>'+
+      '<span>请先配置 AI API 才能使用截图识别功能。选择提供商并填写 API Key 后点击"保存配置"。</span></div>';
+  }
+
+  // 提供商选择
+  const providerOptions=providers.map(p=>
+    '<option value="'+escapeHtml(p.value)+'"'+(cur.provider===p.value?' selected':'')+'>'+escapeHtml(p.label)+'</option>'
+  ).join('');
+  html+='<div class="settings-card">'+
+    '<div class="section-title">⚙️ AI API 配置</div>'+
+    '<div class="settings-form">'+
+      '<div class="form-field">'+
+        '<label for="set-provider">AI 提供商</label>'+
+        '<select id="set-provider" onchange="onProviderChange()">'+
+          '<option value=""'+(!cur.provider?' selected':'')+'>-- 请选择 --</option>'+
+          providerOptions+
+        '</select>'+
+        '<div class="hint">选择 AI 服务提供商，推荐 OpenRouter（支持多种模型，含免费额度）</div>'+
+      '</div>'+
+      '<div class="form-field">'+
+        '<label for="set-api-key">API Key</label>'+
+        '<div class="api-key-wrap">'+
+          '<input type="password" id="set-api-key" placeholder="输入 API Key" autocomplete="off">'+
+          '<button type="button" class="toggle-key" onclick="toggleApiKeyVisibility()" title="显示/隐藏">👁</button>'+
+        '</div>'+
+        '<div class="hint" id="set-api-key-hint"></div>'+
+      '</div>'+
+      '<div class="form-field">'+
+        '<label for="set-base-url">Base URL</label>'+
+        '<input type="text" id="set-base-url" placeholder="https://...">'+
+        '<div class="hint">API 基础地址，选择提供商后自动填充，可手动修改</div>'+
+      '</div>'+
+      '<div class="form-field">'+
+        '<label for="set-model">模型</label>'+
+        '<input type="text" id="set-model" list="set-model-options" placeholder="选择或输入模型名称">'+
+        '<datalist id="set-model-options"></datalist>'+
+        '<div class="hint">可从下拉选择或手动输入模型名（如 x-ai/grok-vision-76b）</div>'+
+      '</div>'+
+    '</div>'+
+    '<div class="settings-actions">'+
+      '<button class="btn btn-primary" onclick="saveSettings()">💾 保存配置</button>'+
+      '<button class="btn btn-secondary" onclick="testSettings()">🔌 测试连接</button>'+
+    '</div>'+
+    '<div class="settings-status" id="set-status"></div>'+
+  '</div>';
+
+  // 配置说明
+  html+='<div class="settings-card">'+
+    '<div class="section-title">📖 配置说明</div>'+
+    '<div style="font-size:13px;color:var(--text-light);line-height:1.8">'+
+      '<p><strong>OpenRouter（推荐）</strong>：聚合多种 AI 模型，部分模型有免费额度。前往 '+
+        '<a href="https://openrouter.ai/" target="_blank" style="color:var(--primary)">openrouter.ai</a> 注册获取 API Key。</p>'+
+      '<p><strong>OpenAI</strong>：使用 GPT-4o 等模型，需要 OpenAI API Key。</p>'+
+      '<p><strong>Anthropic</strong>：使用 Claude 系列模型，需要 Anthropic API Key。</p>'+
+      '<p><strong>阿里云百炼</strong>：使用通义千问 VL 系列，需要阿里云 DashScope API Key。</p>'+
+      '<p><strong>自定义</strong>：兼容 OpenAI 接口的任何服务，需手动填写 base_url 和模型名。</p>'+
+      '<p style="margin-top:10px;color:var(--text-muted)">配置保存在 data/ai_config.json，也可通过 .env 文件配置（环境变量作为 fallback）。</p>'+
+    '</div>'+
+  '</div>';
+
+  c.innerHTML=html;
+
+  // 填充当前值
+  if(cur.api_key_set){
+    $('#set-api-key').value=cur.api_key_masked||'';
+    $('#set-api-key-hint').innerHTML='已配置（显示为掩码，清空输入框可重新输入新的 Key）';
+  }
+  if(cur.base_url) $('#set-base-url').value=cur.base_url;
+  if(cur.model) $('#set-model').value=cur.model;
+
+  // 根据当前 provider 初始化模型列表
+  updateModelOptions(cur.provider);
+}
+
+function onProviderChange(){
+  const providerVal=$('#set-provider').value;
+  const providers=state.settings.providers||[];
+  const p=providers.find(x=>x.value===providerVal);
+  if(!p) return;
+  // 自动填充默认 base_url（仅当为空或与其它 provider 默认值匹配时）
+  const baseUrlInput=$('#set-base-url');
+  if(baseUrlInput){
+    const cur=baseUrlInput.value.trim();
+    // 如果当前 base_url 为空，或是某个 provider 的默认值，则更新
+    const isDefault=providers.some(pp=>pp.default_base_url===cur);
+    if(!cur||isDefault){
+      baseUrlInput.value=p.default_base_url||'';
+    }
+  }
+  // 自动填充默认模型（仅当为空或与其它 provider 默认值匹配时）
+  const modelInput=$('#set-model');
+  if(modelInput){
+    const curM=modelInput.value.trim();
+    const isDefaultModel=providers.some(pp=>pp.default_model===curM);
+    if((!curM||isDefaultModel)&&p.default_model){
+      modelInput.value=p.default_model;
+    }
+  }
+  updateModelOptions(providerVal);
+}
+
+function updateModelOptions(providerVal){
+  const datalist=$('#set-model-options');
+  if(!datalist) return;
+  const providers=state.settings.providers||[];
+  const p=providers.find(x=>x.value===providerVal);
+  const models=(p&&p.models)||[];
+  datalist.innerHTML=models.map(m=>'<option value="'+escapeHtml(m)+'">').join('');
+}
+
+function toggleApiKeyVisibility(){
+  const input=$('#set-api-key');
+  if(!input) return;
+  input.type=input.type==='password'?'text':'password';
+}
+
+async function saveSettings(){
+  const provider=$('#set-provider').value;
+  const apiKey=$('#set-api-key').value;
+  const baseUrl=$('#set-base-url').value;
+  const model=$('#set-model').value;
+  if(!provider){
+    showSettingsStatus('error','请选择 AI 提供商');
+    return;
+  }
+  const btn=event.target;
+  if(btn){btn.disabled=true;btn.textContent='保存中...'}
+  try{
+    const body={provider,api_key:apiKey,base_url:baseUrl,model};
+    const resp=await api('/api/settings',{method:'POST',body:JSON.stringify(body)});
+    if(resp.success){
+      showSettingsStatus('success','✓ 配置已保存');
+      showToast('配置已保存','success');
+      // 刷新当前配置（更新掩码等）
+      const fresh=await api('/api/settings');
+      state.settings.current=fresh;
+      if(fresh.api_key_set){
+        $('#set-api-key').value=fresh.api_key_masked||'';
+        $('#set-api-key-hint').innerHTML='已配置（显示为掩码，清空输入框可重新输入新的 Key）';
+      }
+    }else{
+      showSettingsStatus('error','✕ '+(resp.error||'保存失败'));
+    }
+  }catch(e){
+    showSettingsStatus('error','✕ '+e.message);
+  }finally{
+    if(btn){btn.disabled=false;btn.textContent='💾 保存配置'}
+  }
+}
+
+async function testSettings(){
+  const btn=event.target;
+  showSettingsStatus('loading','<div class="ss-spinner"></div><span>正在测试连接，请稍候（将调用 AI 识别一张测试图）...</span>');
+  if(btn){btn.disabled=true;btn.textContent='测试中...'}
+  try{
+    const resp=await api('/api/settings/test',{method:'POST',body:JSON.stringify({})});
+    if(resp.success){
+      showSettingsStatus('success','✓ '+(resp.message||'测试成功'));
+    }else{
+      showSettingsStatus('error','✕ '+(resp.message||'测试失败'));
+    }
+  }catch(e){
+    showSettingsStatus('error','✕ '+e.message);
+  }finally{
+    if(btn){btn.disabled=false;btn.textContent='🔌 测试连接'}
+  }
+}
+
+function showSettingsStatus(type,html){
+  const el=$('#set-status');
+  if(!el) return;
+  el.className='settings-status show '+type;
+  el.innerHTML=html;
+}
+
+/* ==================== 初始化引导 ==================== */
+async function checkInitAndStart(){
+  try{
+    const status=await api('/api/init-status');
+    if(status.meal_count===0){
+      $('#onboarding').classList.remove('hidden');
+      $('#app').classList.add('hidden');
+    }else{
+      $('#onboarding').classList.add('hidden');
+      $('#app').classList.remove('hidden');
+      loadToday();
+    }
+  }catch(e){
+    // 如果检查失败，直接进入应用
+    $('#onboarding').classList.add('hidden');
+    $('#app').classList.remove('hidden');
+    loadToday();
+  }
+}
+
+async function initDemo(){
+  try{
+    showToast('正在加载示例数据...','info');
+    await api('/api/init',{method:'POST',body:JSON.stringify({reset:false})});
+    showToast('示例数据已加载','success');
+    $('#onboarding').classList.add('hidden');
+    $('#app').classList.remove('hidden');
+    loadToday();
+  }catch(e){
+    showToast(e.message,'error');
+  }
+}
+
+function startEmpty(){
+  $('#onboarding').classList.add('hidden');
+  $('#app').classList.remove('hidden');
+  loadToday();
+}
+
+/* ==================== 启动 ==================== */
+document.addEventListener('DOMContentLoaded',checkInitAndStart);
+</script>
+</body>
+</html>

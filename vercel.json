@@ -1,0 +1,11 @@
+{
+  "buildCommand": "echo 'Build complete'",
+  "outputDirectory": "static",
+  "devCommand": "python -m http.server 3000 --directory static",
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
+    }
+  ]
+}

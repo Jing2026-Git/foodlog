@@ -1,0 +1,53 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "foodlog"
+version = "0.1.0"
+description = "日常饮食记录平台 - 截图识别、营养分析、智能推荐"
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+authors = [
+    { name = "foodlog" },
+]
+keywords = ["food", "diet", "nutrition", "ai", "log"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: End Users/Desktop",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+dependencies = [
+    "typer[all] >= 0.9.0",
+    "fastapi >= 0.100.0",
+    "uvicorn >= 0.23.0",
+    "httpx >= 0.24.0",
+    "Pillow >= 10.0.0",
+    "python-dotenv >= 1.0.0",
+    "jinja2 >= 3.1.0",
+    "rich >= 13.0.0",
+    "python-multipart >= 0.0.6",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest >= 7.0.0",
+    "pytest-cov >= 4.0.0",
+]
+
+[project.scripts]
+foodlog = "foodlog.cli:app"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["foodlog*"]
+
+[tool.setuptools.package-data]
+foodlog = ["web/templates/*"]
