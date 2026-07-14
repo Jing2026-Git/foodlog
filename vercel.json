@@ -1,7 +1,7 @@
 {
   "framework": null,
-  "buildCommand": "echo 'no build needed'",
-  "outputDirectory": "static",
+  "buildCommand": "mkdir -p output && cp static/index.html output/",
+  "outputDirectory": "output",
   "rewrites": [
     {
       "source": "/((?!api/).*)",
