@@ -2,6 +2,6 @@
   "name": "foodlog",
   "private": true,
   "scripts": {
-    "build": "mkdir -p public && cp static/index.html public/"
+    "build": "mkdir -p output && cp static/index.html output/"
   }
 }
