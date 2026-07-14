@@ -1,0 +1,10 @@
+foodlog/
+tests/
+*.py
+*.toml
+*.egg-info
+__pycache__/
+.env
+.env.example
+README.md
+data/
