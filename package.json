@@ -1,7 +1,5 @@
 {
   "name": "foodlog",
   "private": true,
-  "scripts": {
-    "build": "mkdir -p output && cp static/index.html output/"
-  }
+  "type": "module"
 }

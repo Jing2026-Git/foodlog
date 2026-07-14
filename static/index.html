@@ -353,7 +353,7 @@ const RECOMMENDED_INTAKE={
 const MIN_RECORDS_FOR_RECO=7;
 const GENERAL_ADVICE='记录更多数据后推荐会更精准。目前建议：保持三餐规律，注意蛋白质和蔬菜的摄入。';
 // AI 识别 prompt（与 ai_recognizer.py 完全一致）
-const RECOGNIZE_PROMPT='你是一个饮食记录助手。请分析这张图片（可能是外卖订单截图、食物照片等），识别以下信息。这些字段是用户自定义的分类标签，请尽量匹配已有标签值，也可以根据图片内容给出更精确的标签：\n\n1. food_name: 食物名称（如"黄焖鸡米饭"、"拿铁咖啡"）\n2. food_category: 食物类别（主食/肉类/蔬菜/饮品/水果/其他）\n3. staple_food: 主食类型（优先匹配：米饭/包子饺子/粗粮低GI/汤面汤粉/汉堡披萨。如果没有则null）\n4. meat_type: 蛋白来源（优先匹配：鱼虾/猪肉/鸡鸭/牛羊/奶类/蛋or植物，可多选用逗号分隔。如果没有则null）\n5. vegetable_type: 蔬菜类型（优先匹配：叶子菜/菌菇/瓜果茄/根茎类/豆类，可多选用逗号分隔。如果没有则null）\n6. taste: 口味（优先匹配：清淡/重口/油/辣/甜/咸。如果没有则null）\n7. calories: 估算热量(kcal)（整数）\n8. protein: 蛋白质(g)（估算，保留1位小数）\n9. carbs: 碳水(g)（估算，保留1位小数）\n10. fat: 脂肪(g)（估算，保留1位小数）\n11. price: 价格(元)（从截图中提取，如果没有则null）\n12. source: 来源类型（takeout外卖/home自炊/restaurant下馆子，根据截图特征判断）\n13. meal_type: 餐次（breakfast/lunch/dinner/snack，根据截图中的时间或食物类型推断）\n14. tags: 标签（逗号分隔，如"咖啡,奶茶,大餐"）\n15. notes: 备注（任何值得记录的信息）\n\n注意：\n- 截图中的饮品（奶茶/咖啡/果汁等），food_category 设为"饮品"，同时在 tags 中标记"奶茶"/"咖啡"/"果汁"\n- 奶类饮品（牛奶、奶茶等），meat_type 中标记"奶类"\n- 鸡蛋/鸭蛋等，meat_type 中用"蛋or植物"\n- 如果一顿饭里既有主食又有菜，请把主食归到 staple_food，蛋白质归到 meat_type，蔬菜归到 vegetable_type\n\n请只返回JSON格式，不要包含其他文字：\n{"food_name": "...", "food_category": "...", "staple_food": "...", "meat_type": "...", "vegetable_type": "...", "taste": "...", "calories": 000, ...}\n';
+const RECOGNIZE_PROMPT='你是一个饮食记录助手。请分析这张图片（可能是外卖订单截图、食物照片等），识别以下信息。这些字段是用户自定义的分类标签，请尽量匹配已有标签值，也可以根据图片内容给出更精确的标签：\n\n1. food_name: 食物名称（如"黄焖鸡米饭"、"拿铁咖啡"）\n2. food_category: 食物类别（主食/肉类/蔬菜/饮品/水果/其他）\n3. staple_food: 主食类型（优先匹配：米饭/包子饺子/粗粮低GI/汤面汤粉/汉堡披萨。如果没有则null）\n4. meat_type: 蛋白来源（优先匹配：鱼虾/猪肉/鸡鸭/牛羊/奶类/蛋or植物，可多选用逗号分隔。如果没有则null）\n5. vegetable_type: 蔬菜类型（优先匹配：叶子菜/菌菇/瓜果茄/根茎类/豆类，可多选用逗号分隔。如果没有则null）\n6. taste: 口味（优先匹配：清淡/重口/油/辣/甜/咸。如果没有则null）\n7. calories: 估算热量(kcal)（整数）\n8. protein: 蛋白质(g)（估算，保留1位小数）\n9. carbs: 碳水(g)（估算，保留1位小数）\n10. fat: 脂肪(g)（估算，保留1位小数）\n11. price: 价格(元)（从截图中提取，如果没有则null）\n12. source: 来源类型（takeout外卖/home自炊/restaurant下馆子，根据截图特征判断）\n13. meal_type: 餐次（breakfast/lunch/dinner/snack，根据截图中的时间或食物类型推断）\n14. tags: 标签（逗号分隔，如"咖啡,奶茶,大餐"）\n15. notes: 备注（任何值得记录的信息）\n\n注意：\n- 截图中的饮品（奶茶/咖啡/果汁等），food_category 设为"饮品"，同时在 tags 中标记"奶茶"/"咖啡"/"果汁"\n- 奶类饮品（牛奶、奶茶等），meat_type 中标记"奶类"\n- 鸡蛋/鸭蛋等，meat_type 中用"蛋or植物"\n- 如果一顿饭里既有主食又有菜，请把主食归到 staple_food，蛋白质归到 meat_type，蔬菜归到 vegetable_type\n\n请只返回纯JSON格式（不要markdown代码块、不要解释文字），所有字段必须包含，没有值的用null：\n{"food_name":"食物名称","food_category":"主食|肉类|蔬菜|饮品|水果|其他","staple_food":"米饭|包子饺子|粗粮低GI|汤面汤粉|汉堡披萨|null","meat_type":"鱼虾|猪肉|鸡鸭|牛羊|奶类|蛋or植物|null","vegetable_type":"叶子菜|菌菇|瓜果茄|根茎类|豆类|null","taste":"清淡|重口|油|辣|甜|咸|null","calories":500,"protein":20.0,"carbs":60.0,"fat":15.0,"price":25.0,"source":"takeout|home|restaurant","meal_type":"breakfast|lunch|dinner|snack","tags":"标签1,标签2","notes":"备注"}\n';
 // AI 提供商（与 app.py /api/providers 一致）
 const AI_PROVIDERS=[
   {value:'openrouter',label:'OpenRouter（推荐，支持多种模型）',default_model:'x-ai/grok-vision-76b',default_base_url:'https://openrouter.ai/api/v1',models:['x-ai/grok-vision-76b','google/gemini-2.0-flash-exp:free','meta-llama/llama-3.2-90b-vision-instruct','qwen/qwen-2-vl-72b-instruct']},
@@ -676,13 +676,12 @@ function validateConfig(cfg){
 }
 function buildApiUrl(baseUrl,path){if(baseUrl.endsWith('/v1')) return baseUrl+path;return baseUrl+'/v1'+path;}
 async function callAI(imageB64,prompt,cfg){
-  const controller=new AbortController();const timer=setTimeout(()=>controller.abort(),60000);
+  const controller=new AbortController();const timer=setTimeout(()=>controller.abort(),90000);
   try{
     // 走同域 serverless 代理，避免 CORS 问题
-    const isLocalhost=location.hostname==='localhost'||location.hostname==='127.0.0.1';
-    const proxyUrl=isLocalhost?'http://localhost:3000/api/recognize':'/api/recognize';
-    const resp=await fetch(proxyUrl,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({provider:cfg.provider,api_key:cfg.api_key,base_url:cfg.base_url,model:cfg.model,prompt:prompt,image:imageB64}),signal:controller.signal});
-    const data=await resp.json();
+    const resp=await fetch('/api/recognize',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({provider:cfg.provider,api_key:cfg.api_key,base_url:cfg.base_url,model:cfg.model,prompt:prompt,image:imageB64}),signal:controller.signal});
+    let data;
+    try{data=await resp.json();}catch(e){throw new Error('AI代理服务返回了非JSON响应（HTTP '+resp.status+'），可能是函数超时或部署异常');}
     if(!resp.ok||data.error){
       let msg=data.error||('AI服务返回错误: '+resp.status);
       if(data.detail) msg+='\n详情: '+data.detail;
@@ -690,8 +689,8 @@ async function callAI(imageB64,prompt,cfg){
     }
     return data.text||'';
   }catch(e){
-    if(e.name==='AbortError') throw new Error('AI识别超时（60秒），请重试');
-    if(e.message==='Failed to fetch') throw new Error('网络连接失败，请检查网络');
+    if(e.name==='AbortError') throw new Error('AI识别超时（90秒），请重试');
+    if(e.message==='Failed to fetch') throw new Error('网络连接失败，请检查网络或代理服务是否正常');
     throw e;
   }finally{clearTimeout(timer);}
 }
@@ -705,18 +704,19 @@ function parseAIResponse(text){
   return null;
 }
 function normalizeAIResult(obj){
+  const cleanStr=v=>{if(v==null) return '';const s=String(v).trim();return (s==='null'||s==='NULL'||s==='无'||s==='没有'||s==='none'||s==='N/A')?'':s;};
   const toFloat=v=>{if(v==null||v==='') return null;const n=Number(v);return isNaN(n)?null:n;};
   const toInt=v=>{if(v==null||v==='') return null;const n=parseInt(v,10);if(!isNaN(n)) return n;const f=parseFloat(v);return isNaN(f)?null:Math.round(f);};
-  const sf=(String(obj.staple_food||'')).trim();
-  const mt=(String(obj.meat_type||'')).trim();
-  const vt=(String(obj.vegetable_type||'')).trim();
-  const t=(String(obj.taste||'')).trim();
+  const sf=cleanStr(obj.staple_food);
+  const mt=cleanStr(obj.meat_type);
+  const vt=cleanStr(obj.vegetable_type);
+  const t=cleanStr(obj.taste);
   return {
-    food_name:(String(obj.food_name||'')).trim(),
-    food_category:(String(obj.food_category||'')).trim(),
+    food_name:cleanStr(obj.food_name),
+    food_category:cleanStr(obj.food_category),
     staple_food:sf||null,meat_type:mt||null,vegetable_type:vt||null,taste:t||null,
     calories:toInt(obj.calories),protein:toFloat(obj.protein),carbs:toFloat(obj.carbs),fat:toFloat(obj.fat),price:toFloat(obj.price),
-    source:(String(obj.source||'')).trim(),meal_type:(String(obj.meal_type||'')).trim(),tags:(String(obj.tags||'')).trim(),notes:(String(obj.notes||'')).trim(),
+    source:cleanStr(obj.source),meal_type:cleanStr(obj.meal_type),tags:cleanStr(obj.tags),notes:cleanStr(obj.notes),
   };
 }
 async function recognizeScreenshot(file){
@@ -727,30 +727,27 @@ async function recognizeScreenshot(file){
   let rawText;
   try{rawText=await callAI(imageB64,RECOGNIZE_PROMPT,cfg);}catch(e){return {success:false,error:e.message};}
   const parsed=parseAIResponse(rawText);
-  if(!parsed) return {success:false,error:'AI返回格式异常',raw_response:rawText};
+  if(!parsed) return {success:false,error:'AI返回格式异常（无法解析为JSON），原始响应：'+(rawText||'').slice(0,200),raw_response:rawText};
   return {success:true,data:parsed,raw_response:rawText};
 }
 async function testAIConnection(){
   const cfg=DB.getConfig();const err=validateConfig(cfg);
   if(err) return {success:false,message:err};
-  const controller=new AbortController();const timer=setTimeout(()=>controller.abort(),20000);
+  const controller=new AbortController();const timer=setTimeout(()=>controller.abort(),30000);
   try{
-    if(cfg.provider==='anthropic'){
-      const url=buildApiUrl(cfg.base_url,'/messages');
-      const resp=await fetch(url,{method:'POST',headers:{'x-api-key':cfg.api_key,'anthropic-version':'2023-06-01','Content-Type':'application/json'},body:JSON.stringify({model:cfg.model,max_tokens:16,messages:[{role:'user',content:[{type:'text',text:'请回复OK'}]}]}),signal:controller.signal});
-      if(resp.status===401||resp.status===403) return {success:false,message:'API密钥无效或权限不足'};
-      if(!resp.ok) return {success:false,message:'AI服务返回错误: '+resp.status};
-      return {success:true,message:'AI 配置测试成功！可以正常使用截图识别功能'};
-    }else{
-      const url=buildApiUrl(cfg.base_url,'/chat/completions');
-      const resp=await fetch(url,{method:'POST',headers:{'Authorization':'Bearer '+cfg.api_key,'Content-Type':'application/json'},body:JSON.stringify({model:cfg.model,max_tokens:16,messages:[{role:'user',content:'请回复OK'}]}),signal:controller.signal});
-      if(resp.status===401||resp.status===403) return {success:false,message:'API密钥无效或权限不足'};
-      if(!resp.ok) return {success:false,message:'AI服务返回错误: '+resp.status};
-      return {success:true,message:'AI 配置测试成功！可以正常使用截图识别功能'};
+    // 走同域代理测试，避免 CORS 问题
+    const resp=await fetch('/api/recognize',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({provider:cfg.provider,api_key:cfg.api_key,base_url:cfg.base_url,model:cfg.model,test:true}),signal:controller.signal});
+    let data;
+    try{data=await resp.json();}catch(e){return {success:false,message:'AI代理服务返回了非JSON响应（HTTP '+resp.status+'），可能是部署异常'};}
+    if(!resp.ok||data.error){
+      let msg=data.error||('AI服务返回错误: '+resp.status);
+      if(data.detail) msg+='\n详情: '+data.detail;
+      return {success:false,message:msg};
     }
+    return {success:true,message:'AI 配置测试成功！可以正常使用截图识别功能'};
   }catch(e){
     if(e.name==='AbortError') return {success:false,message:'请求超时，请重试'};
-    if(e.message==='Failed to fetch') return {success:false,message:'网络连接失败，请检查网络或 CORS 设置'};
+    if(e.message==='Failed to fetch') return {success:false,message:'网络连接失败，请检查网络或代理服务是否正常'};
     return {success:false,message:e.message};
   }finally{clearTimeout(timer);}
 }

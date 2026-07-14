@@ -1,7 +1,11 @@
 {
   "framework": null,
-  "buildCommand": "mkdir -p output && cp static/index.html output/",
-  "outputDirectory": "output",
+  "outputDirectory": "static",
+  "functions": {
+    "api/recognize.js": {
+      "maxDuration": 60
+    }
+  },
   "rewrites": [
     {
       "source": "/((?!api/).*)",
