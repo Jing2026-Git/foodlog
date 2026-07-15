@@ -776,6 +776,19 @@ function openModal(title,bodyHtml,footerHtml=''){
   document.addEventListener('keydown',_modalCloseHandler);
 }
 function closeModal(){const root=$('#modal-root');if(root.innerHTML) root.innerHTML='';if(_modalCloseHandler){document.removeEventListener('keydown',_modalCloseHandler);_modalCloseHandler=null;}}
+function showErrorDetail(title,error,rawResponse){
+  const errText=String(error||'未知错误');
+  const rawText=String(rawResponse||'');
+  const body='<div style="margin-bottom:14px;padding:12px 14px;background:var(--danger-light);border-radius:var(--radius-sm);font-size:14px;color:var(--danger);line-height:1.6;white-space:pre-wrap;word-break:break-all">'+escapeHtml(errText)+'</div>'+
+    (rawText?'<div style="margin-bottom:8px;font-size:13px;color:var(--text-light);font-weight:600">📋 AI 原始返回内容（可用于排查）：</div>'+
+    '<textarea id="err-raw" readonly style="width:100%;height:200px;font-family:monospace;font-size:12px;padding:10px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg);resize:vertical;white-space:pre;word-break:break-all">'+escapeHtml(rawText)+'</textarea>'+
+    '<div style="margin-top:10px;display:flex;gap:8px"><button class="btn btn-secondary btn-sm" onclick="copyErrRaw()">📋 复制原始返回</button>'+
+    '<button class="btn btn-ghost btn-sm" onclick="downloadErrRaw()">💾 下载为 .txt</button></div>':'<div style="color:var(--text-muted);font-size:13px">无 AI 原始返回内容（可能是网络/代理错误）</div>');
+  const footer='<button class="btn btn-ghost" onclick="closeModal()">关闭</button>';
+  openModal(title,body,footer);
+}
+function copyErrRaw(){const t=$('#err-raw');if(!t) return;navigator.clipboard.writeText(t.value).then(()=>showToast('已复制到剪贴板','success')).catch(()=>{t.select();document.execCommand('copy');showToast('已复制','success');});}
+function downloadErrRaw(){const t=$('#err-raw');if(!t) return;const blob=new Blob([t.value],{type:'text/plain;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='ai-response-'+Date.now()+'.txt';a.click();URL.revokeObjectURL(a.href);}
 
 /* ==================== 页面切换 ==================== */
 function switchPage(name){
@@ -1034,7 +1047,7 @@ async function handleUpload(file){
   modalBody.innerHTML='<div class="upload-preview"><img src="'+previewUrl+'" alt="预览"></div><div class="upload-loading"><div class="spinner"></div><div class="ul-text">AI 识别中...</div><div class="ul-sub">正在分析截图内容，请稍候</div></div>';
   try{
     const resp=await recognizeScreenshot(file);
-    if(!resp.success){showToast(resp.error||'识别失败','error');closeModal();URL.revokeObjectURL(previewUrl);return;}
+    if(!resp.success){showErrorDetail('AI 识别失败',resp.error,resp.raw_response);URL.revokeObjectURL(previewUrl);return;}
     const now=new Date();
     const draftMeal=DB.addMeal({
       date:todayStr(),time:String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0'),

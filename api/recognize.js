@@ -52,8 +52,10 @@ export default async function handler(req, res) {
     } else {
       result = await callOpenAICompat(base, api_key, model, prompt, image);
     }
+    console.log('[recognize] OK', { provider, model, base, resultLen: result.length, resultHead: result.slice(0, 300) });
     return res.status(200).json({ success: true, text: result });
   } catch (e) {
+    console.error('[recognize] FAIL', { provider, model, base, msg: e.message, detail: (typeof e.detail === 'string' ? e.detail.slice(0, 800) : '') });
     return res.status(502).json({
       error: e.message || 'AI 服务调用失败',
       detail: (typeof e.detail === 'string' ? e.detail : JSON.stringify(e.detail || '')).slice(0, 500),
