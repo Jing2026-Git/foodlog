@@ -727,8 +727,27 @@ function generateTodayReminders(todayMeals){
   const recordedTypes=new Set(todayMeals.map(m=>m.meal_type));
   const missing=MAIN_MEAL_TYPES.filter(mt=>!recordedTypes.has(mt));
   if(todayMeals.length<3&&missing.length){const names=missing.map(mt=>MEAL_TYPE_NAMES[mt]||mt).join('、');reminders.push('你今天还没记'+names+'，别忘了记录');}
-  if(!todayMeals.some(m=>m.food_category==='蔬菜')) reminders.push('今天还没吃蔬菜，记得补充点蔬菜');
-  if(!todayMeals.some(m=>m.food_category==='水果')) reminders.push('今天还没吃水果，可以来点水果');
+  const hasVegetable=todayMeals.some(m=>{
+    if(m.food_category==='蔬菜') return true;
+    if(Array.isArray(m.vegetable)&&m.vegetable.length>0) return true;
+    if(m.vegetable_type&&String(m.vegetable_type).trim()) return true;
+    if(m.food_name&&/菜|叶|蔬|菇|菌|番茄|黄瓜|茄子|生菜|菠菜|油麦|白菜|西兰花|花菜/i.test(m.food_name)) return true;
+    if(m.notes&&/菜|蔬|叶/i.test(m.notes)) return true;
+    return false;
+  });
+  if(!hasVegetable) reminders.push('今天还没吃蔬菜，记得补充点蔬菜');
+  const hasFruit=todayMeals.some(m=>{
+    if(m.food_category==='水果') return true;
+    if(m.food_name&&/果|苹果|香蕉|橙|葡萄|柚|桃|梨|莓|西瓜|芒果|柠檬|果茶|果汁/i.test(m.food_name)) return true;
+    if(m.notes&&/水果|果盘/i.test(m.notes)) return true;
+    return false;
+  });
+  if(!hasFruit) reminders.push('今天还没吃水果，可以来点水果');
+  const totalCal=todayMeals.reduce((s,m)=>s+Number(m.calories||0),0);
+  const totalProtein=todayMeals.reduce((s,m)=>s+Number(m.protein||0),0);
+  if(todayMeals.length>=2&&totalProtein<40) reminders.push('今日蛋白质摄入偏低（'+Math.round(totalProtein)+'g），建议补充肉蛋奶或豆制品');
+  if(todayMeals.length>=3&&totalCal<1200) reminders.push('今日总热量偏低（'+fmtCal(totalCal)+'kcal），注意营养均衡');
+  if(todayMeals.length>=2&&totalCal>2500) reminders.push('今日总热量偏高（'+fmtCal(totalCal)+'kcal），注意控制');
   return reminders;
 }
 function getRecommendations(){
@@ -1284,9 +1303,9 @@ function renderRecommend(){
   $('#recommend-content').innerHTML=html;
 }
 function openQuickOrder(id){
-  const meal=DB.getMeal(id);
+  const meal=DB.getMealById(id);
   if(!meal) return;
-  const newMeal={...meal,id:null,date:todayStr(),time:String(new Date().getHours()).padStart(2,'0')+':'+String(new Date().getMinutes()).padStart(2,'0')};
+  const newMeal={...meal,id:null,date:todayStr(),time:String(new Date().getHours()).padStart(2,'0')+':'+String(new Date().getMinutes()).padStart(2,'0'),created_at:null,updated_at:null};
   DB.addMeal(newMeal);
   showToast('已快速下单','success');
   switchPage('record');
@@ -1498,9 +1517,9 @@ function deleteMeal(id){
 }
 function copyMeal(id){
   try{
-    const meal=DB.getMeal(id);
+    const meal=DB.getMealById(id);
     if(!meal) return;
-    const newMeal={...meal,id:null,date:state.recordData.currentDate};
+    const newMeal={...meal,id:null,date:state.recordData.currentDate,created_at:null,updated_at:null};
     DB.addMeal(newMeal);
     showToast('记录已复制','success');
     refreshCurrentPage();
@@ -1508,7 +1527,7 @@ function copyMeal(id){
 }
 function moveMealToNextDay(id){
   try{
-    const meal=DB.getMeal(id);
+    const meal=DB.getMealById(id);
     if(!meal) return;
     const nextDay=addDays(meal.date,1);
     DB.updateMeal(id,{date:nextDay});
