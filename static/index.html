@@ -354,7 +354,7 @@ const RECOMMENDED_INTAKE={
 const MIN_RECORDS_FOR_RECO=7;
 const GENERAL_ADVICE='记录更多数据后推荐会更精准。目前建议：保持三餐规律，注意蛋白质和蔬菜的摄入。';
 // AI 识别 prompt（与 ai_recognizer.py 完全一致）
-const RECOGNIZE_PROMPT='你是一个专业的饮食记录助手。请仔细分析这张图片，它可能是：\n- 外卖订单截图（包含店铺名、菜品列表、价格、口味选择等）\n- 食物照片\n\n请按照以下规则逐项识别：\n\n【识别步骤】\n1. 先读取截图中所有文字内容（店铺名、菜品名、规格、口味、配料、价格等）\n2. 分析每一道菜的食材构成（主食、蛋白质、蔬菜等）\n3. 根据菜品名称和描述推断口味特征\n4. 根据截图特征判断来源（外卖平台截图=takeout，餐厅=restaurant，家庭=home）\n5. 根据时间或菜品类型推断餐次\n6. 根据食材清单估算热量和营养成分（务必根据实际食材数量仔细计算，不要用固定模板）\n\n【字段定义】\n1. food_name: 食物名称（综合所有菜品，如"麻辣拌套餐"）\n2. food_category: 主要类别（主食/肉类/蔬菜/饮品/水果/其他）\n3. staple_food: 主食类型（米饭/包子饺子/粗粮低GI/汤面汤粉/汉堡披萨/null）\n4. meat_type: 蛋白来源，可多选逗号分隔（鱼虾/猪肉/鸡鸭/牛羊/奶类/蛋or植物/null）\n5. vegetable_type: 蔬菜类型，可多选逗号分隔（叶子菜/菌菇/瓜果茄/根茎类/豆类/null）\n6. taste: 口味（清淡/重口/油/辣/甜/咸，可多选逗号分隔）\n7. calories: 估算热量(kcal)（整数，务必根据食材数量计算：一碗米饭约130-150kcal，一份面条约200-250kcal，一份肉类约150-250kcal，一份蔬菜约20-50kcal）\n8. protein: 蛋白质(g)（保留1位小数）\n9. carbs: 碳水(g)（保留1位小数）\n10. fat: 脂肪(g)（保留1位小数）\n11. price: 实付金额(元)（从截图中提取）\n12. source: takeout|home|restaurant\n13. meal_type: breakfast|lunch|dinner|snack\n14. tags: 标签（仅保留最重要的1-2个，如"外卖"、"麻辣烫"，不要生成太多）\n15. notes: 备注（记录店铺名、套餐名等）\n\n【智能推断规则】\n- 主食识别：刀削面/面条/米线/米粉 → 汤面汤粉；玉米/红薯 → 粗粮低GI；米饭 → 米饭\n- 蛋白质识别：鸡肉/鸡排/鸡胸 → 鸡鸭；牛肉/肥牛/牛排 → 牛羊；猪肉/里脊/排骨 → 猪肉；虾/鱼/蟹 → 鱼虾；豆腐/豆制品 → 蛋or植物\n- 蔬菜识别：菠菜/生菜/油麦菜 → 叶子菜；海带/海藻 → 藻类；笋尖/藕片 → 根茎类；金针菇/香菇 → 菌菇；番茄/茄子/黄瓜 → 瓜果茄\n- 口味推断：麻辣/香辣/川味 → 辣+重口；红烧/酱爆 → 咸+重口；清蒸/白灼 → 清淡；奶油/芝士 → 油+甜\n- 饮品识别：奶茶/咖啡/果汁 → 饮品，tags标记"奶茶"/"咖啡"/"果汁"\n- 外卖特征：有"订单已送达"、平台logo、配送费、红包等 → source=takeout\n\n【热量估算要点】\n- 米饭一碗（约100g）：130-150kcal\n- 面条一碗（约100g）：200-250kcal\n- 米粉/米线一碗（约100g）：130-160kcal\n- 馒头/包子一个（约100g）：250-300kcal\n- 鸡胸肉一份（约100g）：100-150kcal\n- 瘦牛肉/猪肉一份（约100g）：150-200kcal\n- 肥牛/五花肉一份（约100g）：250-350kcal\n- 蔬菜一份（约100g）：20-50kcal\n- 豆腐/豆制品一份（约100g）：80-120kcal\n- 油炸食品一份：300-400kcal\n- 麻辣烫/麻辣拌一份（含主食和肉）：500-800kcal\n\n【示例：外卖订单截图】\n截图内容：拌将麻辣拌·麻辣烫(国贸店)，品质·随心配套餐，腐皮三鲜卷/老式里脊肉/高蛋白鸡肉肉片/鸡胸肉丸/脆嫩笋尖/去根海带苗/豌豆苗/千叶豆腐/香甜爆汁玉米/菠菜刀削面，口味：微麻微辣，实付30.14元\n识别结果：\nfood_name="麻辣拌套餐"\nfood_category="主食"\nstaple_food="汤面汤粉"\nmeat_type="鸡鸭,猪肉,蛋or植物"\nvegetable_type="叶子菜,根茎类,豆类"\ntaste="辣,重口"\ncalories=650\nprotein=35.0\ncarbs=70.0\nfat=25.0\nprice=30.14\nsource="takeout"\nmeal_type="lunch"\ntags="外卖"\nnotes="拌将麻辣拌·麻辣烫(国贸店)，微麻微辣口味"\n\n请只返回纯JSON格式（不要markdown代码块、不要解释文字），所有字段必须包含，没有值的用null：\n{"food_name":"食物名称","food_category":"主食|肉类|蔬菜|饮品|水果|其他","staple_food":"米饭|包子饺子|粗粮低GI|汤面汤粉|汉堡披萨|null","meat_type":"鱼虾|猪肉|鸡鸭|牛羊|奶类|蛋or植物|null","vegetable_type":"叶子菜|菌菇|瓜果茄|根茎类|豆类|null","taste":"清淡|重口|油|辣|甜|咸|null","calories":500,"protein":20.0,"carbs":60.0,"fat":15.0,"price":25.0,"source":"takeout|home|restaurant","meal_type":"breakfast|lunch|dinner|snack","tags":"标签1,标签2","notes":"备注"}\n';
+const RECOGNIZE_PROMPT='你是一个专业的饮食记录助手。请仔细分析这张图片，它可能是：\n- 外卖订单截图（包含店铺名、菜品列表、价格、口味选择等）\n- 食物照片\n\n请按照以下规则逐项识别：\n\n【识别步骤】\n1. 先读取截图中所有文字内容（店铺名、菜品名、规格、口味、配料、价格等）\n2. 分析每一道菜的食材构成（主食、蛋白质、蔬菜等）\n3. 根据菜品名称和描述推断口味特征\n4. 根据截图特征判断来源（外卖平台截图=takeout，餐厅=restaurant，家庭=home）\n5. 根据时间或菜品类型推断餐次\n6. 根据食材清单估算热量和营养成分（务必根据实际食材数量仔细计算，不要用固定模板）\n\n【字段定义】\n1. food_name: 食物名称（综合所有菜品，如"麻辣拌套餐"）\n2. food_category: 主要类别（主食/肉类/蔬菜/饮品/水果/其他）\n3. staple_food: 主食类型（米饭/包子饺子/粗粮低GI/汤面汤粉/汉堡披萨/null）\n4. meat_type: 蛋白来源，可多选逗号分隔（鱼虾/猪肉/鸡鸭/牛羊/奶类/蛋or植物/null）\n5. vegetable_type: 蔬菜类型，可多选逗号分隔（叶子菜/菌菇/瓜果茄/根茎类/豆类/null）\n6. taste: 口味（清淡/重口/油/辣/甜/咸，可多选逗号分隔）\n7. calories: 估算热量(kcal)（整数，务必根据食材数量计算：一碗米饭约130-150kcal，一份面条约200-250kcal，一份肉类约150-250kcal，一份蔬菜约20-50kcal）\n8. protein: 蛋白质(g)（保留1位小数）\n9. carbs: 碳水(g)（保留1位小数）\n10. fat: 脂肪(g)（保留1位小数）\n11. price: 实付金额(元)（从截图中提取）\n12. source: takeout|home|restaurant\n13. meal_type: breakfast|lunch|dinner|snack\n14. tags: 健康属性标签（仅1-2个，如"健康餐"、"油太多"、"高纳"、"快餐"、"大餐"、"外卖"。商家名称、菜品名、口味不要进入标签）\n15. notes: 备注（记录店铺名、套餐名、口味等详细信息）\n\n【智能推断规则】\n- 主食识别：刀削面/面条/米线/米粉 → 汤面汤粉；玉米/红薯 → 粗粮低GI；米饭 → 米饭\n- 蛋白质识别：鸡肉/鸡排/鸡胸 → 鸡鸭；牛肉/肥牛/牛排 → 牛羊；猪肉/里脊/排骨 → 猪肉；虾/鱼/蟹 → 鱼虾；豆腐/豆制品 → 蛋or植物\n- 蔬菜识别：菠菜/生菜/油麦菜 → 叶子菜；海带/海藻 → 藻类；笋尖/藕片 → 根茎类；金针菇/香菇 → 菌菇；番茄/茄子/黄瓜 → 瓜果茄\n- 口味推断：麻辣/香辣/川味 → 辣+重口；红烧/酱爆 → 咸+重口；清蒸/白灼 → 清淡；奶油/芝士 → 油+甜\n- 饮品识别：奶茶/咖啡/果汁 → 饮品，food_category设为"饮品"\n- 外卖特征：有"订单已送达"、平台logo、配送费、红包等 → source=takeout\n- 健康标签推断：沙拉/轻食/清蒸/水煮 → 健康餐；油炸/烧烤/炸鸡 → 油太多；川菜/湘菜/重口味 → 高纳；麦当劳/KFC/汉堡 → 快餐；牛排/海鲜/多人聚餐 → 大餐\n\n【热量估算要点】\n- 米饭一碗（约100g）：130-150kcal\n- 面条一碗（约100g）：200-250kcal\n- 米粉/米线一碗（约100g）：130-160kcal\n- 馒头/包子一个（约100g）：250-300kcal\n- 鸡胸肉一份（约100g）：100-150kcal\n- 瘦牛肉/猪肉一份（约100g）：150-200kcal\n- 肥牛/五花肉一份（约100g）：250-350kcal\n- 蔬菜一份（约100g）：20-50kcal\n- 豆腐/豆制品一份（约100g）：80-120kcal\n- 油炸食品一份：300-400kcal\n- 麻辣烫/麻辣拌一份（含主食和肉）：500-800kcal\n\n【示例：外卖订单截图】\n截图内容：拌将麻辣拌·麻辣烫(国贸店)，品质·随心配套餐，腐皮三鲜卷/老式里脊肉/高蛋白鸡肉肉片/鸡胸肉丸/脆嫩笋尖/去根海带苗/豌豆苗/千叶豆腐/香甜爆汁玉米/菠菜刀削面，口味：微麻微辣，实付30.14元\n识别结果：\nfood_name="麻辣拌套餐"\nfood_category="主食"\nstaple_food="汤面汤粉"\nmeat_type="鸡鸭,猪肉,蛋or植物"\nvegetable_type="叶子菜,根茎类,豆类"\ntaste="辣,重口"\ncalories=650\nprotein=35.0\ncarbs=70.0\nfat=25.0\nprice=30.14\nsource="takeout"\nmeal_type="lunch"\ntags="高纳"\nnotes="拌将麻辣拌·麻辣烫(国贸店)，品质·随心配套餐，微麻微辣口味"\n\n请只返回纯JSON格式（不要markdown代码块、不要解释文字），所有字段必须包含，没有值的用null：\n{"food_name":"食物名称","food_category":"主食|肉类|蔬菜|饮品|水果|其他","staple_food":"米饭|包子饺子|粗粮低GI|汤面汤粉|汉堡披萨|null","meat_type":"鱼虾|猪肉|鸡鸭|牛羊|奶类|蛋or植物|null","vegetable_type":"叶子菜|菌菇|瓜果茄|根茎类|豆类|null","taste":"清淡|重口|油|辣|甜|咸|null","calories":500,"protein":20.0,"carbs":60.0,"fat":15.0,"price":25.0,"source":"takeout|home|restaurant","meal_type":"breakfast|lunch|dinner|snack","tags":"标签1,标签2","notes":"备注"}\n';
 // AI 提供商（与 app.py /api/providers 一致）
 const AI_PROVIDERS=[
   {value:'openrouter',label:'OpenRouter（推荐新手，多模型可选）',default_model:'anthropic/claude-3.5-sonnet',default_base_url:'https://openrouter.ai/api/v1',models:['anthropic/claude-3.5-sonnet','anthropic/claude-3.7-sonnet','openai/gpt-4o','openai/gpt-4o-mini','google/gemini-2.0-flash-exp:free','google/gemini-2.5-pro-preview-03-25','qwen/qwen2.5-vl-72b-instruct','meta-llama/llama-3.2-90b-vision-instruct','x-ai/grok-2-vision-1212']},
@@ -485,8 +485,15 @@ function weeklySummary(weekStart){
     total_calories+=dc;total_price+=dp;total_protein+=dpr;
   }
   total_calories=round1(total_calories);total_price=round1(total_price);total_protein=round1(total_protein);
-  const avg_daily_calories=round1(total_calories/7);const avg_daily_price=round1(total_price/7);const avg_protein=round1(total_protein/7);
+  const days_with_records=[...new Set(meals.map(m=>m.date))].length;
+  const avg_daily_calories=days_with_records>0?round1(total_calories/days_with_records):0;
+  const avg_daily_price=days_with_records>0?round1(total_price/days_with_records):0;
+  const avg_protein=days_with_records>0?round1(total_protein/days_with_records):0;
   const tags=aggregateTags(meals);
+  const protein_stats=getProteinStats(meals);
+  const vegetable_stats=getVegetableDailyStats(meals,startStr,endStr);
+  const staple_stats=getStapleStats(meals);
+  const drink_stats=getDrinkStats(meals);
   const anomalies=[];
   meals.forEach(m=>{if(Number(m.calories||0)>1000){anomalies.push({type:'high_calorie',date:m.date,description:'单餐热量较高（'+fmtNumClean(m.calories)+'kcal）',meal:m});}});
   daily_data.forEach(d=>{if(d.price>100){anomalies.push({type:'high_spend',date:d.date,description:'日餐饮花费较高（￥'+fmtNumClean(d.price)+'）',meal:null});}});
@@ -508,7 +515,37 @@ function weeklySummary(weekStart){
   if(maxStreak>=3) evaluations.push('本周蔬菜摄入太少');
   const drinkTotal=DRINK_TAGS.reduce((s,t)=>s+((tags[t]||{}).count||0),0);
   if(drinkTotal>7) evaluations.push('本周饮料摄入频繁');
-  return {week_start:startStr,week_end:endStr,total_calories,avg_daily_calories,total_price,avg_daily_price,total_protein,avg_protein,meal_count:meals.length,daily_data,tags,anomalies,comparison,evaluations};
+  return {week_start:startStr,week_end:endStr,total_calories,avg_daily_calories,total_price,avg_daily_price,total_protein,avg_protein,meal_count:meals.length,daily_data,tags,anomalies,comparison,evaluations,protein_stats,vegetable_stats,staple_stats,drink_stats};
+}
+
+/* ==================== 周报统计函数 ==================== */
+function getProteinStats(meals){
+  const counts={};
+  const labels={'鱼虾':'鱼虾','猪肉':'猪肉','鸡鸭':'鸡鸭','牛羊':'牛羊','奶类':'奶类','蛋or植物':'蛋or植物'};
+  meals.forEach(m=>{if(m.meat_type){m.meat_type.split(',').forEach(t=>{t=t.trim();if(labels[t]) counts[t]=(counts[t]||0)+1;});}});
+  const total=Object.values(counts).reduce((a,b)=>a+b,0);
+  return Object.keys(labels).map(k=>({name:labels[k],count:counts[k]||0,percent:total>0?round1((counts[k]||0)/total*100):0}));
+}
+function getVegetableDailyStats(meals,startDate,endDate){
+  const daily={};
+  for(let d=new Date(startDate);d<=new Date(endDate);d.setDate(d.getDate()+1)){
+    const dateStr=formatDate(d);
+    daily[dateStr]={hasVegetable:false,types:[]};
+  }
+  meals.forEach(m=>{if(m.vegetable_type&&daily[m.date]){daily[m.date].hasVegetable=true;daily[m.date].types=[...new Set([...daily[m.date].types,...m.vegetable_type.split(',').map(t=>t.trim())])];}});
+  return daily;
+}
+function getStapleStats(meals){
+  const counts={};
+  const labels={'米饭':'米饭','包子饺子':'包子饺子','粗粮低GI':'粗粮低GI','汤面汤粉':'汤面汤粉','汉堡披萨':'汉堡披萨'};
+  meals.forEach(m=>{if(m.staple_food&&labels[m.staple_food]) counts[m.staple_food]=(counts[m.staple_food]||0)+1;});
+  const total=Object.values(counts).reduce((a,b)=>a+b,0);
+  return Object.keys(labels).map(k=>({name:labels[k],count:counts[k]||0,percent:total>0?round1((counts[k]||0)/total*100):0}));
+}
+function getDrinkStats(meals){
+  const counts={'奶茶':0,'咖啡':0,'果汁':0,'其他':0};
+  meals.forEach(m=>{if(m.food_category==='饮品'){const tags=(m.tags||'').toLowerCase();if(tags.includes('奶茶')) counts['奶茶']++;else if(tags.includes('咖啡')) counts['咖啡']++;else if(tags.includes('果汁')) counts['果汁']++;else counts['其他']++;}});
+  return counts;
 }
 
 /* ==================== 推荐引擎（移植 recommender.py） ==================== */
@@ -857,10 +894,46 @@ function renderWeek(){
     html+='</div>';
   }else{html+=emptyState('📊','暂无数据','本周还没有记录');}
   html+='</div>';
+
+  if(data.protein_stats&&data.protein_stats.length){
+    const maxP=Math.max(...data.protein_stats.map(s=>s.count),1);
+    html+='<div class="section-card"><div class="section-title">🥩 蛋白质来源分布</div><div class="chart">';
+    data.protein_stats.forEach(s=>{html+='<div class="bar-col"><div class="bar-value">'+s.count+'次 ('+s.percent+'%)</div><div class="bar" style="height:'+Math.max(s.count/maxP*100,2)+'%" title="'+s.name+': '+s.count+'次"></div><div class="bar-label">'+escapeHtml(s.name)+'</div></div>';});
+    html+='</div></div>';
+  }
+
+  if(data.vegetable_stats){
+    html+='<div class="section-card"><div class="section-title">🥬 蔬菜摄入日历</div><div style="display:grid;grid-template-columns:repeat(7,1fr);gap:8px;">';
+    Object.keys(data.vegetable_stats).forEach(date=>{
+      const v=data.vegetable_stats[date];
+      const hasVeg=v.hasVegetable?'background:#00B894;color:#fff':'background:#E9ECF0;color:#B2BEC3';
+      html+='<div style="padding:12px;text-align:center;border-radius:8px;'+hasVeg+'" title="'+date+(v.types.length?'\n摄入: '+v.types.join(','):'')+'"><div style="font-size:14px;font-weight:600;">'+parseInt(date.slice(8),10)+'</div><div style="font-size:11px;">'+weekdayLabel(date)+'</div></div>';
+    });
+    html+='</div><div style="margin-top:8px;font-size:12px;color:#B2BEC3;">绿色=有蔬菜摄入</div></div>';
+  }
+
+  if(data.staple_stats&&data.staple_stats.length){
+    const maxS=Math.max(...data.staple_stats.map(s=>s.count),1);
+    html+='<div class="section-card"><div class="section-title">🍚 主食结构</div><div class="chart">';
+    data.staple_stats.forEach(s=>{html+='<div class="bar-col"><div class="bar-value">'+s.count+'次 ('+s.percent+'%)</div><div class="bar" style="height:'+Math.max(s.count/maxS*100,2)+'%" title="'+s.name+': '+s.count+'次"></div><div class="bar-label">'+escapeHtml(s.name)+'</div></div>';});
+    html+='</div></div>';
+  }
+
+  if(data.drink_stats){
+    const drinkTotal=data.drink_stats['奶茶']+data.drink_stats['咖啡']+data.drink_stats['果汁']+data.drink_stats['其他'];
+    if(drinkTotal>0){
+      html+='<div class="section-card"><div class="section-title">🥤 饮料频次</div><div class="chart">';
+      const drinkOrder=['奶茶','咖啡','果汁','其他'];
+      const maxD=Math.max(...Object.values(data.drink_stats),1);
+      drinkOrder.forEach(type=>{const c=data.drink_stats[type];html+='<div class="bar-col"><div class="bar-value">'+c+'次</div><div class="bar" style="height:'+Math.max(c/maxD*100,2)+'%" title="'+type+': '+c+'次"></div><div class="bar-label">'+escapeHtml(type)+'</div></div>';});
+      html+='</div></div>';
+    }
+  }
+
   const tags=data.tags||{};const tagList=Object.keys(tags).map(tag=>({tag,...tags[tag]}));
   if(tagList.length){
-    html+='<div class="section-card"><div class="section-title">🏷️ 标签统计</div><table class="data-table"><thead><tr><th>标签</th><th>出现次数</th><th>对应支出</th></tr></thead><tbody>';
-    tagList.forEach(t=>{html+='<tr><td><span class="tag-chip">'+escapeHtml(t.tag)+'</span></td><td>'+t.count+' 次</td><td>¥'+fmtPrice(t.total_price)+'</td></tr>';});
+    html+='<div class="section-card"><div class="section-title">🏷️ 标签统计</div><table class="data-table"><thead><tr><th>标签</th><th>出现次数</th></tr></thead><tbody>';
+    tagList.forEach(t=>{html+='<tr><td><span class="tag-chip">'+escapeHtml(t.tag)+'</span></td><td>'+t.count+' 次</td></tr>';});
     html+='</tbody></table></div>';
   }
   if(data.anomalies&&data.anomalies.length){
