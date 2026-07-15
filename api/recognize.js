@@ -106,6 +106,7 @@ async function callAnthropic(base, apiKey, model, prompt, imageB64) {
         ],
       }],
     }),
+    signal: AbortSignal.timeout(45000),
   });
 
   if (!resp.ok) {
@@ -151,6 +152,7 @@ async function callOpenAICompat(base, apiKey, model, prompt, imageB64) {
       }],
       max_tokens: 1024,
     }),
+    signal: AbortSignal.timeout(45000),
   });
 
   if (!resp.ok) {
