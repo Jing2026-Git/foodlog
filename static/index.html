@@ -4,29 +4,33 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>🍚 饭记 - 你的饮食日记</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Patrick+Hand&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
   --primary:#FF6B35;--primary-dark:#E55A2B;--primary-light:#FFE8DE;
   --primary-gradient:linear-gradient(135deg,#FF6B35 0%,#FF9558 100%);
-  --text:#2D3436;--text-light:#636E72;--text-muted:#B2BEC3;
-  --bg:#F5F6FA;--card-bg:#FFFFFF;--border:#E9ECF0;
+  --text:#1A1614;--text-light:#6B6660;--text-muted:#B5B0A8;
+  --bg:#FAF7F2;--card-bg:#FFFFFF;--border:#EDE8E0;--dashed:#D4C9B8;
   --success:#00B894;--success-light:#E0F8F4;
   --warning:#F39C12;--warning-light:#FEF3E0;
   --danger:#E74C3C;--danger-light:#FDECEA;
   --info:#3498DB;--info-light:#E8F4FD;
   --radius:12px;--radius-sm:8px;
-  --shadow:0 2px 12px rgba(0,0,0,0.06);--shadow-lg:0 8px 32px rgba(0,0,0,0.12);
+  --shadow:0 2px 12px rgba(26,22,20,0.06);--shadow-lg:0 8px 32px rgba(26,22,20,0.12);
   --nav-h:60px;--max-w:960px;
+  --font-hand:'Caveat',cursive;--font-body:'Patrick Hand','PingFang SC','Microsoft YaHei',sans-serif;
 }
 html{font-size:16px;-webkit-text-size-adjust:100%}
-body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--text);line-height:1.6;min-height:100vh;-webkit-font-smoothing:antialiased}
+body{font-family:var(--font-body);background:var(--bg);color:var(--text);line-height:1.6;min-height:100vh;-webkit-font-smoothing:antialiased;background-image:radial-gradient(circle at 20% 30%,rgba(255,107,53,0.03) 0%,transparent 50%),radial-gradient(circle at 80% 70%,rgba(139,94,60,0.03) 0%,transparent 50%);}
 a{color:inherit;text-decoration:none}
 button{font-family:inherit;cursor:pointer;border:none;outline:none}
 input,select,textarea{font-family:inherit;font-size:inherit;outline:none}
 .hidden{display:none!important}
 .navbar{position:sticky;top:0;z-index:100;background:var(--card-bg);border-bottom:1px solid var(--border);height:var(--nav-h);display:flex;align-items:center;padding:0 24px;box-shadow:0 1px 8px rgba(0,0,0,0.03)}
-.logo{font-size:20px;font-weight:700;color:var(--primary);white-space:nowrap}
+.logo{font-size:26px;font-weight:700;color:var(--primary);white-space:nowrap;font-family:var(--font-hand)}
 .nav-items{display:flex;gap:4px;margin-left:32px}
 .nav-item{padding:8px 16px;border-radius:var(--radius-sm);font-size:14px;color:var(--text-light);font-weight:500;transition:all .2s;cursor:pointer;background:none}
 .nav-item:hover{color:var(--primary);background:var(--primary-light)}
@@ -242,6 +246,124 @@ table.data-table{width:100%;border-collapse:collapse;font-size:14px}
 .bottom-nav-item{display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 14px;font-size:11px;color:var(--text-muted);cursor:pointer;border:none;background:none;transition:color .2s}
 .bottom-nav-item.active{color:var(--primary)}
 .bottom-nav-item .bn-icon{font-size:20px}
+
+/* ===== 手账风格 · 三视图样式 ===== */
+/* 顶部工具栏：视图切换 + 日期导航 */
+.record-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px;flex-wrap:wrap}
+.view-switcher{display:inline-flex;background:var(--card-bg);border:2px solid var(--dashed);border-radius:999px;padding:3px;box-shadow:var(--shadow)}
+.vs-btn{padding:6px 18px;font-size:18px;font-family:var(--font-hand);font-weight:600;color:var(--text-light);border-radius:999px;cursor:pointer;background:none;transition:all .2s;letter-spacing:.5px}
+.vs-btn:hover{color:var(--primary)}
+.vs-btn.active{background:var(--primary-gradient);color:#fff;box-shadow:0 2px 6px rgba(255,107,53,0.3)}
+.date-nav{display:flex;align-items:center;gap:6px;background:var(--card-bg);border:2px dashed var(--dashed);border-radius:999px;padding:4px 6px;box-shadow:var(--shadow)}
+.date-arrow{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;color:var(--text-light);background:none;cursor:pointer;transition:all .2s}
+.date-arrow:hover{background:var(--primary-light);color:var(--primary)}
+.date-label{font-family:var(--font-hand);font-size:22px;font-weight:600;color:var(--text);min-width:160px;text-align:center;cursor:pointer;padding:2px 8px;border-radius:var(--radius-sm);transition:background .2s}
+.date-label:hover{background:var(--primary-light)}
+.date-label .date-weekday{font-size:14px;color:var(--text-muted);font-family:var(--font-body);font-weight:400;margin-left:4px}
+
+/* 当日摘要（日视图顶部数字带） */
+.day-summary{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px;padding:16px;background:var(--card-bg);border:2px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);position:relative}
+.day-summary::before{content:'~';position:absolute;top:-14px;left:18px;background:var(--bg);padding:0 8px;font-family:var(--font-hand);font-size:22px;color:var(--primary);font-weight:700}
+.ds-item{text-align:center;padding:4px 2px;position:relative}
+.ds-item:not(:last-child)::after{content:'';position:absolute;right:-5px;top:20%;bottom:20%;width:1px;border-left:1px dashed var(--dashed)}
+.ds-val{font-family:var(--font-hand);font-size:26px;font-weight:700;color:var(--primary);line-height:1.1;font-variant-numeric:tabular-nums}
+.ds-val .ds-unit{font-size:13px;color:var(--text-muted);font-weight:400;margin-left:2px;font-family:var(--font-body)}
+.ds-label{font-size:12px;color:var(--text-muted);margin-top:4px;letter-spacing:.5px}
+
+/* 时间线（日视图） */
+.timeline{position:relative;padding-left:80px;margin-top:8px}
+.timeline::before{content:'';position:absolute;left:68px;top:8px;bottom:8px;border-left:2px dashed var(--dashed)}
+.tl-item{position:relative;margin-bottom:18px;display:flex;align-items:flex-start}
+.tl-time{position:absolute;left:-80px;top:6px;width:60px;text-align:right;font-family:var(--font-hand);font-size:18px;font-weight:600;color:var(--text-light);font-variant-numeric:tabular-nums}
+.tl-dot{position:absolute;left:-18px;top:10px;width:14px;height:14px;border-radius:50%;background:var(--card-bg);border:3px solid var(--primary);box-shadow:0 0 0 4px var(--bg);z-index:1}
+.tl-card{flex:1;background:var(--card-bg);border:1.5px solid var(--border);border-radius:var(--radius);padding:12px 14px;box-shadow:var(--shadow);cursor:pointer;transition:all .2s;position:relative}
+.tl-card::before{content:'';position:absolute;left:-4px;top:14px;width:8px;height:8px;background:var(--card-bg);border-left:1.5px solid var(--border);border-bottom:1.5px solid var(--border);transform:rotate(45deg)}
+.tl-card:hover{border-color:var(--primary);box-shadow:0 4px 16px rgba(255,107,53,0.12);transform:translateX(2px)}
+.tl-card-head{display:flex;align-items:center;gap:8px;margin-bottom:4px}
+.tl-name{font-size:16px;font-weight:600;color:var(--text);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tl-meal{font-size:11px;padding:2px 8px;border-radius:999px;background:var(--primary-light);color:var(--primary-dark);font-weight:500;white-space:nowrap}
+.tl-meta{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:13px;color:var(--text-light);font-family:var(--font-body)}
+.tl-meta .tl-cal{font-family:var(--font-hand);font-size:16px;font-weight:600;color:var(--primary);font-variant-numeric:tabular-nums}
+.tl-tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
+
+/* 标签筛选条 */
+.tag-filter-bar{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;align-items:center}
+.tag-filter-bar .tf-label{font-family:var(--font-hand);font-size:18px;color:var(--text-muted);margin-right:4px}
+.tf-chip{display:inline-flex;align-items:center;gap:4px;padding:5px 14px;border-radius:999px;border:2px dashed var(--dashed);background:var(--card-bg);font-size:14px;color:var(--text-light);cursor:pointer;transition:all .2s;font-family:var(--font-body)}
+.tf-chip:hover{border-color:var(--primary);color:var(--primary)}
+.tf-chip.active{border-style:solid;color:#fff;font-weight:600}
+.tf-chip .tf-icon{font-size:15px}
+
+/* 周视图 7 列网格 */
+.week-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;margin-top:8px}
+.wg-col{background:var(--card-bg);border:1.5px solid var(--border);border-radius:var(--radius);padding:10px 6px;min-height:180px;display:flex;flex-direction:column;box-shadow:var(--shadow);transition:all .2s}
+.wg-col.today{border-color:var(--primary);background:var(--primary-light)}
+.wg-col:hover{box-shadow:0 4px 16px rgba(0,0,0,0.08)}
+.wg-header{text-align:center;padding-bottom:6px;border-bottom:1px dashed var(--dashed);margin-bottom:6px}
+.wg-day{font-size:11px;color:var(--text-muted);font-weight:500}
+.wg-date{font-family:var(--font-hand);font-size:22px;font-weight:700;color:var(--text);line-height:1;font-variant-numeric:tabular-nums}
+.wg-col.today .wg-date{color:var(--primary)}
+.wg-meals{display:flex;flex-direction:column;gap:5px;flex:1;overflow:hidden}
+.wg-meal{padding:5px 6px;border-radius:var(--radius-sm);background:var(--bg);font-size:12px;cursor:pointer;transition:all .2s;border-left:3px solid var(--primary)}
+.wg-meal:hover{background:var(--primary-light);transform:translateX(2px)}
+.wg-meal-time{font-size:10px;color:var(--text-muted);font-variant-numeric:tabular-nums}
+.wg-meal-name{font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:12px}
+.wg-meal-cal{font-family:var(--font-hand);font-size:13px;color:var(--primary);font-weight:600;font-variant-numeric:tabular-nums}
+.wg-empty{font-size:11px;color:var(--text-muted);text-align:center;padding:8px 0;font-family:var(--font-body)}
+
+/* 筛选统计条 */
+.filter-summary{margin-top:14px;padding:10px 14px;background:var(--card-bg);border:1.5px dashed var(--dashed);border-radius:var(--radius);font-size:14px;color:var(--text-light);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.filter-summary .fs-icon{font-size:16px}
+.filter-summary .fs-count{font-family:var(--font-hand);font-size:18px;font-weight:700;color:var(--primary)}
+
+/* 月视图月历 */
+.month-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-top:8px}
+.mg-weekday{text-align:center;font-size:13px;font-weight:600;color:var(--text-muted);padding:6px 0;font-family:var(--font-hand)}
+.mg-cell{aspect-ratio:1/1;background:var(--card-bg);border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:6px 4px;cursor:pointer;transition:all .2s;display:flex;flex-direction:column;align-items:center;gap:3px;position:relative;min-height:62px}
+.mg-cell:hover{border-color:var(--primary);background:var(--primary-light)}
+.mg-cell.empty{background:transparent;border:1.5px dashed transparent;cursor:default}
+.mg-cell.empty:hover{background:transparent}
+.mg-cell.today{border-color:var(--primary);background:var(--primary-light)}
+.mg-cell.has-data{border-style:solid}
+.mg-date{font-family:var(--font-hand);font-size:18px;font-weight:700;color:var(--text);line-height:1;font-variant-numeric:tabular-nums}
+.mg-cell.today .mg-date{color:var(--primary)}
+.mg-cell.empty .mg-date{color:var(--text-muted);opacity:.4}
+.mg-count{font-size:10px;color:var(--text-muted);font-variant-numeric:tabular-nums}
+.mg-dots{display:flex;gap:3px;margin-top:auto}
+.mg-dot{width:6px;height:6px;border-radius:50%}
+
+/* 浮动添加按钮（FAB） */
+.fab{position:fixed;bottom:80px;right:24px;width:54px;height:54px;border-radius:50%;background:var(--primary-gradient);color:#fff;font-size:28px;font-weight:300;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 20px rgba(255,107,53,0.4);cursor:pointer;z-index:50;transition:all .2s;border:3px solid var(--card-bg)}
+.fab:hover{transform:translateY(-2px) rotate(90deg);box-shadow:0 8px 24px rgba(255,107,53,0.5)}
+.fab:active{transform:translateY(0) rotate(90deg)}
+
+/* 日视图空状态（手绘感） */
+.record-empty{text-align:center;padding:50px 20px;color:var(--text-muted)}
+.record-empty .re-icon{font-size:64px;margin-bottom:14px;opacity:.7}
+.record-empty .re-title{font-family:var(--font-hand);font-size:24px;color:var(--text-light);margin-bottom:6px}
+.record-empty .re-hint{font-size:14px;color:var(--text-muted);margin-bottom:18px}
+.record-empty .re-doodle{font-size:24px;color:var(--dashed);letter-spacing:8px;margin:10px 0}
+
+/* 响应式 */
+@media(max-width:680px){
+  .view-switcher{order:2;width:100%;justify-content:center}
+  .record-toolbar{gap:8px}
+  .date-label{min-width:120px;font-size:18px}
+  .day-summary{grid-template-columns:repeat(2,1fr);gap:6px}
+  .ds-item:nth-child(2)::after{display:none}
+  .timeline{padding-left:64px}
+  .timeline::before{left:54px}
+  .tl-time{left:-64px;width:48px;font-size:15px}
+  .week-grid{grid-template-columns:1fr;gap:6px}
+  .wg-col{min-height:auto;flex-direction:row;align-items:center;padding:8px 10px}
+  .wg-header{padding-bottom:0;border-bottom:none;border-right:1px dashed var(--dashed);padding-right:10px;margin-right:8px;margin-bottom:0;min-width:50px;text-align:left}
+  .wg-meals{flex-direction:row;flex-wrap:wrap;gap:4px}
+  .wg-meal{flex:0 0 auto;min-width:0;max-width:140px}
+  .month-grid{gap:3px}
+  .mg-cell{min-height:48px;padding:4px 2px}
+  .mg-date{font-size:15px}
+  .fab{bottom:74px;right:16px;width:48px;height:48px;font-size:24px}
+}
 </style>
 </head>
 <body>
@@ -262,10 +384,8 @@ table.data-table{width:100%;border-collapse:collapse;font-size:14px}
   <header class="navbar">
     <div class="logo">🍚 饭记</div>
     <nav class="nav-items">
-      <button class="nav-item active" data-page="today" onclick="switchPage('today')">今日</button>
-      <button class="nav-item" data-page="week" onclick="switchPage('week')">周报</button>
+      <button class="nav-item active" data-page="record" onclick="switchPage('record')">记录</button>
       <button class="nav-item" data-page="recommend" onclick="switchPage('recommend')">推荐</button>
-      <button class="nav-item" data-page="history" onclick="switchPage('history')">历史</button>
       <button class="nav-item" data-page="search" onclick="switchPage('search')">搜索</button>
       <button class="nav-item" data-page="settings" onclick="switchPage('settings')">设置</button>
     </nav>
@@ -276,48 +396,31 @@ table.data-table{width:100%;border-collapse:collapse;font-size:14px}
   </header>
 
   <main class="main-content">
-    <section id="page-today" class="page active">
-      <div class="page-header"><div><div class="page-title">今日饮食</div><div class="page-subtitle" id="today-date-label"></div></div></div>
-      <div id="today-content"></div>
-    </section>
-    <section id="page-week" class="page">
-      <div class="page-header"><div><div class="page-title">本周周报</div><div class="page-subtitle" id="week-date-label"></div></div></div>
-      <div id="week-content"></div>
+    <section id="page-record" class="page active">
+      <div id="record-content"></div>
     </section>
     <section id="page-recommend" class="page">
       <div class="page-header"><div><div class="page-title">智能推荐</div><div class="page-subtitle">基于你的饮食数据给出建议</div></div></div>
       <div id="recommend-content"></div>
     </section>
-    <section id="page-history" class="page">
-      <div class="page-header"><div><div class="page-title">历史记录</div><div class="page-subtitle">查看过往的饮食记录</div></div></div>
-      <div class="history-controls">
-        <div class="control-group"><label>选择日期</label><input type="date" id="history-date" onchange="onHistoryDateChange(this.value)"></div>
-        <div class="control-group"><label>来源</label><select id="history-source" onchange="renderHistory()"><option value="">全部</option><option value="takeout">外卖</option><option value="home">自炊</option><option value="restaurant">下馆子</option></select></div>
-        <div class="control-group"><label>餐次</label><select id="history-meal-type" onchange="renderHistory()"><option value="">全部</option><option value="breakfast">早餐</option><option value="lunch">午餐</option><option value="dinner">晚餐</option><option value="snack">加餐</option></select></div>
-        <button class="btn btn-ghost btn-sm" onclick="resetHistoryFilters()">重置</button>
-      </div>
-      <div id="history-content"></div>
-    </section>
     <section id="page-search" class="page">
-      <div class="page-header"><div><div class="page-title">搜索记录</div><div class="page-subtitle">输入关键词如"咖啡"、"奶茶"、"大餐"</div></div></div>
+      <div class="page-header"><div><div class="page-title">搜索记录</div><div class="page-subtitle">查找过往的饮食记录</div></div></div>
       <div class="search-box">
-        <input type="text" id="search-input" placeholder="搜索食物名、标签、备注..." onkeydown="if(event.key==='Enter')doSearch()">
+        <input type="text" id="search-input" placeholder="搜索食物名、标签、备注…" onkeydown="if(event.key==='Enter')doSearch()">
         <button class="btn btn-primary" onclick="doSearch()">搜索</button>
       </div>
       <div id="search-content"><div class="empty-state"><div class="empty-icon">🔍</div><div class="empty-text">输入关键词开始搜索</div></div></div>
     </section>
     <section id="page-settings" class="page">
-      <div class="page-header"><div><div class="page-title">设置</div><div class="page-subtitle">配置 AI API、管理本地数据</div></div></div>
+      <div class="page-header"><div><div class="page-title">设置</div><div class="page-subtitle">AI 配置与应用偏好</div></div></div>
       <div id="settings-content"></div>
     </section>
   </main>
 
   <nav class="bottom-nav">
     <div class="bottom-nav-inner">
-      <button class="bottom-nav-item active" data-page="today" onclick="switchPage('today')"><span class="bn-icon">📋</span>今日</button>
-      <button class="bottom-nav-item" data-page="week" onclick="switchPage('week')"><span class="bn-icon">📊</span>周报</button>
+      <button class="bottom-nav-item active" data-page="record" onclick="switchPage('record')"><span class="bn-icon">📅</span>记录</button>
       <button class="bottom-nav-item" data-page="recommend" onclick="switchPage('recommend')"><span class="bn-icon">💡</span>推荐</button>
-      <button class="bottom-nav-item" data-page="history" onclick="switchPage('history')"><span class="bn-icon">📅</span>历史</button>
       <button class="bottom-nav-item" data-page="search" onclick="switchPage('search')"><span class="bn-icon">🔍</span>搜索</button>
       <button class="bottom-nav-item" data-page="settings" onclick="switchPage('settings')"><span class="bn-icon">⚙️</span>设置</button>
     </div>
@@ -791,7 +894,7 @@ async function testAIConnection(){
 }
 
 /* ==================== 全局状态 ==================== */
-const state={currentPage:'today',todayData:null,weekData:null,recommendData:null,historyMeals:[],historyMode:'recent',searchResults:null};
+const state={currentPage:'record',recommendData:null,searchResults:null,recordData:{currentDate:todayStr(),viewMode:'day',activeTags:[]}};
 
 /* ==================== Toast ==================== */
 function showToast(msg,type='info'){
@@ -835,126 +938,206 @@ function switchPage(name){
   $('#page-'+name).classList.add('active');
   $$('.nav-item').forEach(n=>n.classList.toggle('active',n.dataset.page===name));
   $$('.bottom-nav-item').forEach(n=>n.classList.toggle('active',n.dataset.page===name));
-  if(name==='today') loadToday();
-  else if(name==='week') loadWeek();
+  if(name==='record') loadRecord();
   else if(name==='recommend') loadRecommend();
-  else if(name==='history') loadHistory();
   else if(name==='settings') renderSettings();
 }
 
-/* ==================== 今日页面 ==================== */
-function loadToday(){try{state.todayData=dailySummary(todayStr());renderToday();}catch(e){$('#today-content').innerHTML=errorHtml(e.message);}}
-function renderToday(){
-  const data=state.todayData;if(!data) return;
-  $('#today-date-label').textContent=formatDate(data.date)+' · '+data.date;
-  const c=$('#today-content');
-  let html='<div class="stats-row">'+statCard('🔥',fmtCal(data.total_calories),'kcal','总热量')+statCard('💰',fmtPrice(data.total_price),'元','总支出')+statCard('💪',fmtNum(data.total_protein),'g','蛋白质')+statCard('🍽️',data.meal_count,'餐','餐次数')+'</div>';
-  if(data.evaluations&&data.evaluations.length){
-    html+='<div class="evaluations">';
-    data.evaluations.forEach(ev=>{const cls=ev.includes('不错')||ev.includes('继续保持')||ev.includes('达标')?'eval-good':'eval-warn';const icon=cls==='eval-good'?'✓':'⚠';html+='<div class="eval-item '+cls+'"><span>'+icon+'</span><span>'+escapeHtml(ev)+'</span></div>';});
-    html+='</div>';
+/* ==================== 记录页面（日/周/月三视图） ==================== */
+const TAG_FILTERS=[
+  {key:'饮品',icon:'🥤',color:'#8B5E3C',bg:'#F5EDE3'},
+  {key:'健康餐',icon:'🥗',color:'#2D7A4E',bg:'#E8F5ED'},
+  {key:'高油/高纳',icon:'🌶️',color:'#C0392B',bg:'#FBEAE8'},
+];
+function mealMatchesTagFilter(m,tag){
+  if(tag==='饮品') return m.food_category==='饮品';
+  if(tag==='健康餐'){
+    const t=(m.tags||'')+(m.food_name||'');
+    return t.includes('健康餐')||t.includes('沙拉')||t.includes('轻食');
   }
-  if(data.meal_count===0||!data.meals||!data.meals.length){
-    html+=emptyState('🥢','今天还没有记录','点击右上角上传截图或添加记录');
+  if(tag==='高油/高纳'){
+    const t=(m.tags||'')+(m.taste||'');
+    return t.includes('高油')||t.includes('高纳')||t.includes('油太多');
+  }
+  return false;
+}
+function filterMealsByTags(meals,tags){
+  if(!tags||!tags.length) return meals;
+  return meals.filter(m=>tags.some(t=>mealMatchesTagFilter(m,t)));
+}
+function loadRecord(){
+  if(!state.recordData) state.recordData={currentDate:todayStr(),viewMode:'day',activeTags:[]};
+  renderRecord();
+}
+function renderRecord(){
+  const d=state.recordData||{currentDate:todayStr(),viewMode:'day',activeTags:[]};
+  const c=$('#record-content');
+  let html='<div class="record-toolbar">';
+  html+='<div class="view-switcher">';
+  html+='<button class="vs-btn'+(d.viewMode==='day'?' active':'')+'" onclick="setViewMode(\'day\')">日</button>';
+  html+='<button class="vs-btn'+(d.viewMode==='week'?' active':'')+'" onclick="setViewMode(\'week\')">周</button>';
+  html+='<button class="vs-btn'+(d.viewMode==='month'?' active':'')+'" onclick="setViewMode(\'month\')">月</button>';
+  html+='</div>';
+  html+='<div class="date-nav">';
+  html+='<button class="date-arrow" onclick="shiftDate(-1)" aria-label="上一个">‹</button>';
+  if(d.viewMode==='day'){
+    html+='<button class="date-label" onclick="showDatePicker()">'+formatDateLong(d.currentDate)+'</button>';
+  }else if(d.viewMode==='week'){
+    const ws=getMonday(d.currentDate);const we=addDays(ws,6);
+    html+='<button class="date-label" onclick="showDatePicker()">'+parseInt(ws.slice(5),10)+'月'+parseInt(ws.slice(8),10)+'日 - '+parseInt(we.slice(5),10)+'月'+parseInt(we.slice(8),10)+'日</button>';
   }else{
-    const byType={};
-    data.meals.forEach(m=>{(byType[m.meal_type]=byType[m.meal_type]||[]).push(m);});
-    MEAL_TYPES_ORDER.forEach(mt=>{
-      const items=byType[mt];if(!items||!items.length) return;
-      const groupData=(data.by_meal_type||{})[mt]||{};
-      html+='<div class="meal-group"><div class="meal-group-header"><span class="group-icon">'+mealTypeIcon(mt)+'</span>'+mealTypeLabel(mt)+'<span class="group-stats">'+fmtCal(groupData.calories||0)+' kcal · ¥'+fmtPrice(groupData.price||0)+'</span></div>';
-      items.forEach(m=>{html+=mealCardHtml(m);});
-      html+='</div>';
-    });
+    const dt=parseDate(d.currentDate);
+    html+='<button class="date-label" onclick="showDatePicker()">'+dt.getFullYear()+'年'+(dt.getMonth()+1)+'月</button>';
   }
+  html+='<button class="date-arrow" onclick="shiftDate(1)" aria-label="下一个">›</button>';
+  html+='</div></div>';
+  if(d.viewMode==='day') html+=renderDayView(d.currentDate);
+  else if(d.viewMode==='week') html+=renderWeekView(d.currentDate);
+  else html+=renderMonthView(d.currentDate);
+  html+='<button class="fab" onclick="openAddMealModal()" aria-label="添加记录">✚</button>';
   c.innerHTML=html;
 }
-function statCard(icon,value,unit,label){return '<div class="stat-card"><div class="stat-icon">'+icon+'</div><div class="stat-label">'+label+'</div><div class="stat-value">'+value+'<span class="stat-unit">'+unit+'</span></div></div>';}
-function mealCardHtml(m){
-  const tags=m.tags?String(m.tags).split(',').map(t=>t.trim()).filter(Boolean):[];
-  let html='<div class="meal-card" data-id="'+m.id+'"><div class="meal-card-left"><div class="meal-name"><span>'+escapeHtml(m.food_name)+'</span>'+(m.status==='draft'?'<span class="draft-badge">草稿</span>':'')+'</div><div class="meal-meta"><span>'+sourceIcon(m.source)+' '+sourceLabel(m.source)+'</span>'+(m.food_category?'<span>📂 '+escapeHtml(m.food_category)+'</span>':'')+(m.staple_food?'<span>🍚 '+escapeHtml(m.staple_food)+'</span>':'')+(m.meat_type?'<span>🥩 '+escapeHtml(m.meat_type)+'</span>':'')+(m.vegetable_type?'<span>🥬 '+escapeHtml(m.vegetable_type)+'</span>':'')+(m.taste?'<span>👅 '+escapeHtml(m.taste)+'</span>':'')+'<span>🔥 '+fmtCal(m.calories)+' kcal</span>'+(m.price!=null?'<span>💰 ¥'+fmtPrice(m.price)+'</span>':'')+(m.protein!=null?'<span>💪 '+fmtNum(m.protein)+'g</span>':'')+'</div>';
-  if(tags.length){html+='<div class="meal-tags">'+tags.map(t=>'<span class="tag-chip">'+escapeHtml(t)+'</span>').join('')+'</div>';}
-  html+='</div><div class="meal-actions"><button class="icon-btn" title="编辑" onclick="openEditMealModal('+m.id+')">✏️</button><button class="icon-btn danger" title="删除" onclick="deleteMeal('+m.id+')">🗑️</button></div></div>';
+function formatDateLong(s){const d=parseDate(s);const today=todayStr();const yest=addDays(today,-1);if(s===today) return '今天 · '+(d.getMonth()+1)+'月'+d.getDate()+'日 '+weekdayLabel(s);if(s===yest) return '昨天 · '+(d.getMonth()+1)+'月'+d.getDate()+'日 '+weekdayLabel(s);return (d.getMonth()+1)+'月'+d.getDate()+'日 '+weekdayLabel(s);}
+function setViewMode(m){state.recordData.viewMode=m;renderRecord();}
+function shiftDate(n){
+  const d=state.recordData;
+  if(d.viewMode==='day') d.currentDate=addDays(d.currentDate,n);
+  else if(d.viewMode==='week') d.currentDate=addDays(d.currentDate,n*7);
+  else{const dt=parseDate(d.currentDate);dt.setMonth(dt.getMonth()+n);d.currentDate=fmtDateISO(dt);}
+  renderRecord();
+}
+function showDatePicker(){
+  const d=state.recordData;
+  const inp=document.createElement('input');
+  inp.type='date';inp.value=d.currentDate;inp.style.position='fixed';inp.style.opacity='0';
+  document.body.appendChild(inp);
+  inp.showPicker?inp.showPicker():inp.click();
+  inp.addEventListener('change',()=>{if(inp.value){d.currentDate=inp.value;renderRecord();}document.body.removeChild(inp);});
+}
+function renderDayView(date){
+  const data=dailySummary(date);
+  let html='<div class="day-summary">';
+  html+='<div class="ds-item"><div class="ds-val">'+fmtCal(data.total_calories)+'</div><div class="ds-label">热量 kcal</div></div>';
+  html+='<div class="ds-item"><div class="ds-val">'+fmtPrice(data.total_price)+'</div><div class="ds-label">支出 元</div></div>';
+  html+='<div class="ds-item"><div class="ds-val">'+fmtNum(data.total_protein)+'</div><div class="ds-label">蛋白质 g</div></div>';
+  html+='<div class="ds-item"><div class="ds-val">'+data.meal_count+'</div><div class="ds-label">餐次</div></div>';
+  html+='</div>';
+  if(!data.meals||!data.meals.length){
+    return html+emptyState('🥢','这一天还没有记录','点击右下角 + 添加记录');
+  }
+  const sorted=[...data.meals].sort((a,b)=>(a.time||'').localeCompare(b.time||''));
+  html+='<div class="timeline">';
+  sorted.forEach(m=>{
+    html+='<div class="tl-item">';
+    html+='<div class="tl-time">'+(m.time||'--:--')+'</div>';
+    html+='<div class="tl-dot"></div>';
+    html+='<div class="tl-card" onclick="openEditMealModal('+m.id+')">';
+    html+='<div class="tl-card-head"><span class="tl-name">'+escapeHtml(m.food_name)+'</span><span class="tl-meal">'+mealTypeIcon(m.meal_type)+' '+mealTypeLabel(m.meal_type)+'</span></div>';
+    const tags=m.tags?String(m.tags).split(',').map(t=>t.trim()).filter(Boolean):[];
+    const meta=[];
+    if(m.food_category) meta.push(m.food_category);
+    if(m.staple_food) meta.push('🍚'+m.staple_food);
+    if(m.meat_type) meta.push('🥩'+m.meat_type);
+    if(m.taste) meta.push('👅'+m.taste);
+    meta.push('🔥'+fmtCal(m.calories)+'kcal');
+    if(m.price!=null) meta.push('💰¥'+fmtPrice(m.price));
+    html+='<div class="tl-meta">'+meta.map(x=>'<span>'+escapeHtml(x)+'</span>').join('')+'</div>';
+    if(tags.length) html+='<div class="tl-tags">'+tags.map(t=>'<span class="tag-chip">'+escapeHtml(t)+'</span>').join('')+'</div>';
+    html+='</div></div>';
+  });
+  html+='</div>';
   return html;
 }
-
-/* ==================== 周报页面 ==================== */
-function loadWeek(){try{state.weekData=weeklySummary();renderWeek();}catch(e){$('#week-content').innerHTML=errorHtml(e.message);}}
-function renderWeek(){
-  const data=state.weekData;if(!data) return;
-  $('#week-date-label').textContent=data.week_start+' ~ '+data.week_end;
-  const c=$('#week-content');
-  let html='<div class="stats-row">'+statCard('📊',fmtCal(data.total_calories),'kcal','本周总热量')+statCard('📈',fmtCal(data.avg_daily_calories),'kcal','日均热量')+statCard('💸',fmtPrice(data.total_price),'元','本周总支出')+statCard('💵',fmtPrice(data.avg_daily_price),'元','日均支出')+'</div>';
-  if(data.evaluations&&data.evaluations.length){html+='<div class="evaluations">';data.evaluations.forEach(ev=>{html+='<div class="eval-item eval-info"><span>💡</span><span>'+escapeHtml(ev)+'</span></div>';});html+='</div>';}
-  html+='<div class="section-card"><div class="section-title">📈 每日热量趋势</div>';
-  if(data.daily_data&&data.daily_data.length){
-    const maxCal=Math.max(...data.daily_data.map(d=>d.calories),1);const todayDate=todayStr();
-    html+='<div class="chart">';
-    data.daily_data.forEach(d=>{const h=Math.max((d.calories/maxCal*100),2);const isToday=d.date===todayDate;html+='<div class="bar-col"><div class="bar-value">'+(d.calories>0?fmtCal(d.calories):'-')+'</div><div class="bar'+(isToday?' today':'')+'" style="height:'+h+'%" title="'+d.date+': '+fmtCal(d.calories)+' kcal"></div><div class="bar-label">'+weekdayLabel(d.date)+'<span class="day-num">'+parseInt(d.date.slice(8),10)+'</span></div></div>';});
-    html+='</div>';
-  }else{html+=emptyState('📊','暂无数据','本周还没有记录');}
+function renderTagFilterBar(){
+  const d=state.recordData;
+  let html='<div class="tag-filter-bar">';
+  html+='<button class="tf-chip'+(!d.activeTags.length?' active':'')+'" onclick="toggleTagFilter(null)">全部</button>';
+  TAG_FILTERS.forEach(t=>{
+    const active=d.activeTags.includes(t.key);
+    html+='<button class="tf-chip'+(active?' active':'')+'" style="'+(active?'background:'+t.bg+';color:'+t.color+';border-color:'+t.color:'')+'" onclick="toggleTagFilter(\''+t.key+'\')">'+t.icon+' '+t.key+'</button>';
+  });
   html+='</div>';
-
-  if(data.protein_stats&&data.protein_stats.length){
-    const maxP=Math.max(...data.protein_stats.map(s=>s.count),1);
-    html+='<div class="section-card"><div class="section-title">🥩 蛋白质来源分布</div><div class="chart">';
-    data.protein_stats.forEach(s=>{html+='<div class="bar-col"><div class="bar-value">'+s.count+'次 ('+s.percent+'%)</div><div class="bar" style="height:'+Math.max(s.count/maxP*100,2)+'%" title="'+s.name+': '+s.count+'次"></div><div class="bar-label">'+escapeHtml(s.name)+'</div></div>';});
-    html+='</div></div>';
-  }
-
-  if(data.vegetable_stats){
-    html+='<div class="section-card"><div class="section-title">🥬 蔬菜摄入日历</div><div style="display:grid;grid-template-columns:repeat(7,1fr);gap:8px;">';
-    Object.keys(data.vegetable_stats).forEach(date=>{
-      const v=data.vegetable_stats[date];
-      const hasVeg=v.hasVegetable?'background:#00B894;color:#fff':'background:#E9ECF0;color:#B2BEC3';
-      html+='<div style="padding:12px;text-align:center;border-radius:8px;'+hasVeg+'" title="'+date+(v.types.length?'\n摄入: '+v.types.join(','):'')+'"><div style="font-size:14px;font-weight:600;">'+parseInt(date.slice(8),10)+'</div><div style="font-size:11px;">'+weekdayLabel(date)+'</div></div>';
-    });
-    html+='</div><div style="margin-top:8px;font-size:12px;color:#B2BEC3;">绿色=有蔬菜摄入</div></div>';
-  }
-
-  if(data.staple_stats&&data.staple_stats.length){
-    const maxS=Math.max(...data.staple_stats.map(s=>s.count),1);
-    html+='<div class="section-card"><div class="section-title">🍚 主食结构</div><div class="chart">';
-    data.staple_stats.forEach(s=>{html+='<div class="bar-col"><div class="bar-value">'+s.count+'次 ('+s.percent+'%)</div><div class="bar" style="height:'+Math.max(s.count/maxS*100,2)+'%" title="'+s.name+': '+s.count+'次"></div><div class="bar-label">'+escapeHtml(s.name)+'</div></div>';});
-    html+='</div></div>';
-  }
-
-  if(data.drink_stats){
-    const drinkTotal=data.drink_stats['奶茶']+data.drink_stats['咖啡']+data.drink_stats['果汁']+data.drink_stats['其他'];
-    if(drinkTotal>0){
-      html+='<div class="section-card"><div class="section-title">🥤 饮料频次</div><div class="chart">';
-      const drinkOrder=['奶茶','咖啡','果汁','其他'];
-      const maxD=Math.max(...Object.values(data.drink_stats),1);
-      drinkOrder.forEach(type=>{const c=data.drink_stats[type];html+='<div class="bar-col"><div class="bar-value">'+c+'次</div><div class="bar" style="height:'+Math.max(c/maxD*100,2)+'%" title="'+type+': '+c+'次"></div><div class="bar-label">'+escapeHtml(type)+'</div></div>';});
-      html+='</div></div>';
+  return html;
+}
+function toggleTagFilter(tag){
+  const d=state.recordData;
+  if(tag===null){d.activeTags=[];}
+  else{const i=d.activeTags.indexOf(tag);if(i>=0)d.activeTags.splice(i,1);else d.activeTags.push(tag);}
+  renderRecord();
+}
+function renderWeekView(date){
+  const ws=getMonday(date);const we=addDays(ws,6);
+  const allMeals=DB.getMealsByDateRange(ws,we);
+  let html=renderTagFilterBar();
+  const filtered=filterMealsByTags(allMeals,state.recordData.activeTags);
+  html+='<div class="week-grid">';
+  for(let i=0;i<7;i++){
+    const d=addDays(ws,i);const dayMeals=filtered.filter(m=>m.date===d);
+    const isToday=d===todayStr();
+    html+='<div class="wg-col'+(isToday?' today':'')+'">';
+    html+='<div class="wg-header"><div class="wg-day">'+weekdayLabel(d)+'</div><div class="wg-date">'+parseInt(d.slice(8),10)+'</div></div>';
+    if(dayMeals.length){
+      html+='<div class="wg-meals">';
+      dayMeals.forEach(m=>{
+        html+='<div class="wg-meal" onclick="openEditMealModal('+m.id+')">';
+        html+='<div class="wg-meal-time">'+(m.time||'')+'</div>';
+        html+='<div class="wg-meal-name">'+escapeHtml(m.food_name)+'</div>';
+        html+='<div class="wg-meal-cal">'+fmtCal(m.calories)+'kcal</div>';
+        html+='</div>';
+      });
+      html+='</div>';
+    }else{
+      html+='<div class="wg-empty">·</div>';
     }
-  }
-
-  const tags=data.tags||{};const tagList=Object.keys(tags).map(tag=>({tag,...tags[tag]}));
-  if(tagList.length){
-    html+='<div class="section-card"><div class="section-title">🏷️ 标签统计</div><table class="data-table"><thead><tr><th>标签</th><th>出现次数</th></tr></thead><tbody>';
-    tagList.forEach(t=>{html+='<tr><td><span class="tag-chip">'+escapeHtml(t.tag)+'</span></td><td>'+t.count+' 次</td></tr>';});
-    html+='</tbody></table></div>';
-  }
-  if(data.anomalies&&data.anomalies.length){
-    html+='<div class="section-card"><div class="section-title">⚠️ 异常标注</div>';
-    data.anomalies.forEach(a=>{html+='<div class="anomaly-item"><span>⚠️</span><span>'+escapeHtml(a.description)+'</span><span class="anomaly-date">'+formatDate(a.date)+'</span></div>';});
     html+='</div>';
   }
-  if(data.comparison){
-    const cmp=data.comparison;
-    html+='<div class="section-card"><div class="section-title">📊 与上周对比</div><div class="compare-grid">'+compareItem('热量',cmp.calories_change)+compareItem('支出',cmp.price_change)+compareItem('蛋白质',cmp.protein_change)+'</div></div>';
+  html+='</div>';
+  if(state.recordData.activeTags.length){
+    html+='<div class="filter-summary">已筛选：'+state.recordData.activeTags.join('、')+' · 共 '+filtered.length+' 条</div>';
   }
-  c.innerHTML=html;
+  return html;
 }
-function compareItem(label,change){
-  let cls='flat',arrow='',val='--';
-  if(change===null||change===undefined){val='无数据';}
-  else if(change>0){cls='up';arrow='↑';val='+'+change+'%';}
-  else if(change<0){cls='down';arrow='↓';val=change+'%';}
-  else{val='0%';}
-  return '<div class="compare-item"><div class="compare-label">'+label+'</div><div class="compare-value '+cls+'">'+arrow+' '+val+'</div></div>';
+function renderMonthView(date){
+  const dt=parseDate(date);
+  const y=dt.getFullYear(),m=dt.getMonth();
+  const firstDay=new Date(y,m,1);
+  const startWeekday=(firstDay.getDay()+6)%7;
+  const daysInMonth=new Date(y,m+1,0).getDate();
+  const monthStart=fmtDateISO(firstDay);
+  const monthEnd=fmtDateISO(new Date(y,m,daysInMonth));
+  const allMeals=DB.getMealsByDateRange(monthStart,monthEnd);
+  let html=renderTagFilterBar();
+  const filtered=filterMealsByTags(allMeals,state.recordData.activeTags);
+  const byDate={};
+  filtered.forEach(meal=>{(byDate[meal.date]=byDate[meal.date]||[]).push(meal);});
+  html+='<div class="month-grid">';
+  ['一','二','三','四','五','六','日'].forEach(w=>{html+='<div class="mg-weekday">'+w+'</div>';});
+  for(let i=0;i<startWeekday;i++){html+='<div class="mg-cell empty"></div>';}
+  for(let day=1;day<=daysInMonth;day++){
+    const ds=y+'-'+String(m+1).padStart(2,'0')+'-'+String(day).padStart(2,'0');
+    const dayMeals=byDate[ds]||[];
+    const isToday=ds===todayStr();
+    html+='<div class="mg-cell'+(isToday?' today':'')+'" onclick="jumpToDate(\''+ds+'\')">';
+    html+='<div class="mg-date">'+day+'</div>';
+    if(dayMeals.length){
+      html+='<div class="mg-count">'+dayMeals.length+'餐</div>';
+      html+='<div class="mg-dots">';
+      const tagSet=new Set();
+      dayMeals.forEach(meal=>{
+        if(meal.food_category==='饮品') tagSet.add('饮品');
+        const t=meal.tags||'';
+        if(t.includes('健康餐')||t.includes('沙拉')) tagSet.add('健康餐');
+        if(t.includes('高油')||t.includes('高纳')) tagSet.add('高油/高纳');
+      });
+      TAG_FILTERS.forEach(tf=>{if(tagSet.has(tf.key)) html+='<span class="mg-dot" style="background:'+tf.color+'"></span>';});
+      html+='</div>';
+    }
+    html+='</div>';
+  }
+  html+='</div>';
+  return html;
 }
+function jumpToDate(ds){state.recordData.currentDate=ds;state.recordData.viewMode='day';renderRecord();}
 
 /* ==================== 推荐页面 ==================== */
 function loadRecommend(){try{state.recommendData=getRecommendations();renderRecommend();}catch(e){$('#recommend-content').innerHTML=errorHtml(e.message);}}
@@ -986,47 +1169,6 @@ function renderRecommend(){
   if(!html){html=emptyState('💡','暂无推荐','记录更多数据后会有个性化推荐');}
   c.innerHTML=html;
 }
-
-/* ==================== 历史记录页面 ==================== */
-function loadHistory(){
-  const c=$('#history-content');c.innerHTML=loadingHtml('加载历史记录...');
-  const dateInput=$('#history-date');
-  if(!dateInput.value) state.historyMode='recent';
-  try{
-    let meals;
-    if(state.historyMode==='date'&&dateInput.value){meals=DB.getMealsByDate(dateInput.value);}
-    else{const end=todayStr();const start=addDays(end,-6);meals=DB.getMealsByDateRange(start,end);}
-    state.historyMeals=meals;renderHistory();
-  }catch(e){c.innerHTML=errorHtml(e.message);}
-}
-function onHistoryDateChange(val){state.historyMode=val?'date':'recent';loadHistory();}
-function resetHistoryFilters(){$('#history-date').value='';$('#history-source').value='';$('#history-meal-type').value='';state.historyMode='recent';loadHistory();}
-function renderHistory(){
-  const c=$('#history-content');let meals=state.historyMeals;
-  const sf=$('#history-source').value;const mf=$('#history-meal-type').value;
-  if(sf) meals=meals.filter(m=>m.source===sf);
-  if(mf) meals=meals.filter(m=>m.meal_type===mf);
-  if(!meals.length){c.innerHTML=emptyState('📅','没有匹配的记录','试试调整筛选条件或选择其他日期');return;}
-  const byDate={};
-  meals.forEach(m=>{(byDate[m.date]=byDate[m.date]||[]).push(m);});
-  const dates=Object.keys(byDate).sort((a,b)=>b.localeCompare(a));
-  let html='';
-  dates.forEach(d=>{
-    const dayMeals=byDate[d].slice().sort((a,b)=>(a.time||'').localeCompare(b.time||''));
-    const totalCal=dayMeals.reduce((s,m)=>s+Number(m.calories||0),0);
-    const totalPrice=dayMeals.reduce((s,m)=>s+Number(m.price||0),0);
-    html+='<div class="history-day"><div class="history-day-header"><span>'+formatDate(d)+'</span><span style="font-size:13px;color:var(--text-muted)">'+weekdayLabel(d)+'</span><span class="day-stats">'+fmtCal(totalCal)+' kcal · ¥'+fmtPrice(totalPrice)+' · '+dayMeals.length+'餐</span></div>';
-    dayMeals.forEach(m=>{html+=historyMealHtml(m);});
-    html+='</div>';
-  });
-  c.innerHTML=html;
-}
-function historyMealHtml(m){
-  const tags=m.tags?String(m.tags).split(',').map(t=>t.trim()).filter(Boolean):[];
-  let html='<div class="history-meal" data-id="'+m.id+'"><div class="history-meal-head" onclick="this.parentElement.classList.toggle(\'expanded\')"><span class="hm-time">'+(m.time||'--:--')+'</span><span class="hm-name">'+mealTypeIcon(m.meal_type)+' '+escapeHtml(m.food_name)+'</span><span class="hm-cal">'+fmtCal(m.calories)+' kcal</span><span class="hm-arrow">▼</span></div><div class="history-meal-detail">'+detailRow('来源',sourceIcon(m.source)+' '+sourceLabel(m.source))+(m.food_category?detailRow('类别',escapeHtml(m.food_category)):'')+(m.staple_food?detailRow('主食',escapeHtml(m.staple_food)):'')+(m.meat_type?detailRow('肉类类型',escapeHtml(m.meat_type)):'')+(m.vegetable_type?detailRow('蔬菜类型',escapeHtml(m.vegetable_type)):'')+(m.taste?detailRow('口味',escapeHtml(m.taste)):'')+detailRow('热量',fmtCal(m.calories)+' kcal')+(m.protein!=null?detailRow('蛋白质',fmtNum(m.protein)+' g'):'')+(m.carbs!=null?detailRow('碳水',fmtNum(m.carbs)+' g'):'')+(m.fat!=null?detailRow('脂肪',fmtNum(m.fat)+' g'):'')+(m.price!=null?detailRow('价格','¥'+fmtPrice(m.price)):'')+(tags.length?detailRow('标签',tags.map(t=>'<span class="tag-chip">'+escapeHtml(t)+'</span>').join(' ')):'')+(m.notes?detailRow('备注',escapeHtml(m.notes)):'')+(m.status==='draft'?detailRow('状态','<span style="color:var(--warning)">草稿</span>'):'')+'<div class="detail-actions"><button class="btn btn-secondary btn-sm" onclick="event.stopPropagation();openEditMealModal('+m.id+')">编辑</button><button class="btn btn-danger btn-sm" onclick="event.stopPropagation();deleteMeal('+m.id+')">删除</button></div></div></div>';
-  return html;
-}
-function detailRow(label,value){return '<div class="detail-row"><span class="dl">'+label+'</span><span class="dv">'+value+'</span></div>';}
 
 /* ==================== 搜索 ==================== */
 function doSearch(){
@@ -1077,7 +1219,7 @@ function saveAddMeal(){
   if(!data.date||!data.meal_type||!data.source||!data.food_name){showToast('请填写必填字段','error');return;}
   data.status='confirmed';
   const btn=$$('.modal-footer .btn-primary')[0];if(btn){btn.disabled=true;btn.textContent='保存中...';}
-  try{DB.addMeal(data);closeModal();showToast('记录已添加','success');if(state.currentPage==='today') loadToday();else switchPage('today');}
+  try{DB.addMeal(data);closeModal();showToast('记录已添加','success');if(state.currentPage==='record') loadRecord();else switchPage('record');}
   catch(e){showToast(e.message,'error');if(btn){btn.disabled=false;btn.textContent='保存';}}
 }
 
@@ -1104,10 +1246,8 @@ function deleteMeal(id){
   try{DB.deleteMeal(id);showToast('记录已删除','success');refreshCurrentPage();}catch(e){showToast(e.message,'error');}
 }
 function refreshCurrentPage(){
-  if(state.currentPage==='today') loadToday();
-  else if(state.currentPage==='week') loadWeek();
+  if(state.currentPage==='record') loadRecord();
   else if(state.currentPage==='recommend') loadRecommend();
-  else if(state.currentPage==='history') loadHistory();
   else if(state.currentPage==='search'&&state.searchResults) doSearch();
 }
 
@@ -1149,7 +1289,7 @@ function saveDraftMeal(id){
   if(!data.date||!data.meal_type||!data.source||!data.food_name){showToast('请填写必填字段','error');return;}
   data.status='confirmed';
   const btn=$$('.modal-footer .btn-primary')[0];if(btn){btn.disabled=true;btn.textContent='保存中...';}
-  try{DB.updateMeal(id,data);closeModal();showToast('记录已保存','success');if(state.currentPage==='today') loadToday();else switchPage('today');}
+  try{DB.updateMeal(id,data);closeModal();showToast('记录已保存','success');if(state.currentPage==='record') loadRecord();else switchPage('record');}
   catch(e){showToast(e.message,'error');if(btn){btn.disabled=false;btn.textContent='确认保存';}}
 }
 
@@ -1286,7 +1426,7 @@ function importData(event){
       showToast('已导入 '+clean.length+' 条记录','success');
       event.target.value='';
       $('#meal-count-display')&&($('#meal-count-display').textContent=DB.getMealCount());
-      if(state.currentPage==='today') loadToday();
+      if(state.currentPage==='record') loadRecord();
     }catch(err){
       showToast('导入失败：'+err.message,'error');
       event.target.value='';
@@ -1307,7 +1447,7 @@ function reloadSampleData(){
   DB.setOnboarded();
   showToast('示例数据已加载（'+withMeta.length+' 条）','success');
   $('#meal-count-display')&&($('#meal-count-display').textContent=DB.getMealCount());
-  switchPage('today');
+  switchPage('record');
 }
 function clearAllData(){
   if(!confirm('确定清空所有数据吗？此操作不可恢复！')) return;
@@ -1315,7 +1455,7 @@ function clearAllData(){
   DB.clearAll();
   showToast('所有数据已清空','success');
   $('#meal-count-display')&&($('#meal-count-display').textContent='0');
-  switchPage('today');
+  switchPage('record');
 }
 
 /* ==================== 初始化引导 ==================== */
@@ -1327,7 +1467,7 @@ function checkInitAndStart(){
   }else{
     $('#onboarding').classList.add('hidden');
     $('#app').classList.remove('hidden');
-    loadToday();
+    loadRecord();
   }
 }
 function initDemo(){
@@ -1342,7 +1482,7 @@ function initDemo(){
     showToast('示例数据已加载','success');
     $('#onboarding').classList.add('hidden');
     $('#app').classList.remove('hidden');
-    loadToday();
+    loadRecord();
   }catch(e){
     showToast(e.message,'error');
   }
@@ -1351,7 +1491,7 @@ function startEmpty(){
   DB.setOnboarded();
   $('#onboarding').classList.add('hidden');
   $('#app').classList.remove('hidden');
-  loadToday();
+  loadRecord();
 }
 
 /* ==================== 启动 ==================== */
