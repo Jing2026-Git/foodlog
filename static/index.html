@@ -327,6 +327,10 @@ table.data-table{width:100%;border-collapse:collapse;font-size:14px}
 .wg-meal-time{font-size:10px;color:var(--text-muted);font-variant-numeric:tabular-nums}
 .wg-meal-name{font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:12px}
 .wg-meal-cal{font-family:var(--font-hand);font-size:13px;color:var(--primary);font-weight:600;font-variant-numeric:tabular-nums}
+.wg-meal.wg-breakfast{background:linear-gradient(135deg,#FFF5E6 0%,#FFE8D1 100%);border-left:3px solid #FF9F43}
+.wg-meal.wg-lunch{background:linear-gradient(135deg,#FFFBEB 0%,#FFF3CD 100%);border-left:3px solid #FECA57}
+.wg-meal.wg-dinner{background:linear-gradient(135deg,#EEF2FF 0%,#E0E7FF 100%);border-left:3px solid #5F7FBF}
+.wg-meal.wg-snack{background:linear-gradient(135deg,#E8FFF4 0%,#D4F9E8 100%);border-left:3px solid #26DE81}
 .wg-empty{font-size:11px;color:var(--text-muted);text-align:center;padding:8px 0;font-family:var(--font-body)}
 
 /* 筛选统计条 */
@@ -416,6 +420,7 @@ table.data-table{width:100%;border-collapse:collapse;font-size:14px}
     <nav class="nav-items">
       <button class="nav-item active" data-page="record" onclick="switchPage('record')">记录</button>
       <button class="nav-item" data-page="recommend" onclick="switchPage('recommend')">推荐</button>
+      <button class="nav-item" data-page="analysis" onclick="switchPage('analysis')">分析</button>
       <button class="nav-item" data-page="search" onclick="switchPage('search')">搜索</button>
       <button class="nav-item" data-page="settings" onclick="switchPage('settings')">设置</button>
     </nav>
@@ -432,6 +437,9 @@ table.data-table{width:100%;border-collapse:collapse;font-size:14px}
     <section id="page-recommend" class="page">
       <div class="page-header"><div><div class="page-title">智能推荐</div><div class="page-subtitle">基于你的饮食数据给出建议</div></div></div>
       <div id="recommend-content"></div>
+    </section>
+    <section id="page-analysis" class="page">
+      <div id="analysis-content"></div>
     </section>
     <section id="page-search" class="page">
       <div class="page-header"><div><div class="page-title">搜索记录</div><div class="page-subtitle">查找过往的饮食记录</div></div></div>
@@ -451,6 +459,7 @@ table.data-table{width:100%;border-collapse:collapse;font-size:14px}
     <div class="bottom-nav-inner">
       <button class="bottom-nav-item active" data-page="record" onclick="switchPage('record')"><span class="bn-icon">📅</span>记录</button>
       <button class="bottom-nav-item" data-page="recommend" onclick="switchPage('recommend')"><span class="bn-icon">💡</span>推荐</button>
+      <button class="bottom-nav-item" data-page="analysis" onclick="switchPage('analysis')"><span class="bn-icon">📊</span>分析</button>
       <button class="bottom-nav-item" data-page="search" onclick="switchPage('search')"><span class="bn-icon">🔍</span>搜索</button>
       <button class="bottom-nav-item" data-page="settings" onclick="switchPage('settings')"><span class="bn-icon">⚙️</span>设置</button>
     </div>
@@ -464,18 +473,19 @@ table.data-table{width:100%;border-collapse:collapse;font-size:14px}
 /* 饭记 - 纯前端静态版（数据存 localStorage，AI 识别直接从浏览器调用 API） */
 
 /* ==================== 常量 ==================== */
-const MEAL_TYPE_LABELS={breakfast:'早餐',lunch:'午餐',dinner:'晚餐','snack-am':'上午加餐','snack-pm':'下午加餐','snack-ev':'晚上加餐'};
-const MEAL_TYPE_ICONS={breakfast:'🌅',lunch:'☀️',dinner:'🌙','snack-am':'🍵','snack-pm':'🍵','snack-ev':'🍵'};
-const MEAL_TYPES_ORDER=['breakfast','lunch','snack-am','snack-pm','dinner','snack-ev'];
+const MEAL_TYPE_LABELS={breakfast:'早餐',lunch:'午餐',dinner:'晚餐',snack:'加餐'};
+const MEAL_TYPE_ICONS={breakfast:'🌅',lunch:'☀️',dinner:'🌙',snack:'🍵'};
+const MEAL_TYPES_ORDER=['breakfast','lunch','dinner','snack'];
 const SOURCE_LABELS={takeout:'外卖',leftover:'剩饭',home:'自炊',feast:'大餐'};
 const SOURCE_ICONS={takeout:'🛵',leftover:'🥡',home:'🏠',feast:'🍽️'};
 const DRINK_TAGS=['奶茶','咖啡'];
-const MAIN_MEAL_TYPES=['breakfast','lunch','dinner'];
-const MEAL_TYPE_NAMES={breakfast:'早餐',lunch:'午餐',dinner:'晚餐',snack:'加餐','snack-am':'上午加餐','snack-pm':'下午加餐','snack-ev':'晚上加餐'};
+const MAIN_MEAL_TYPES=['breakfast','lunch','dinner','snack'];
+const MEAL_TYPE_NAMES={breakfast:'早餐',lunch:'午餐',dinner:'晚餐',snack:'加餐'};
 const FLAVOR_LABELS={'清淡':'清淡','normal':'正常','重口':'重口'};
 const STAPLE_LABELS={'low-gi':'低GI粗粮','refined':'精米精面'};
 const PROTEIN_LABELS={'beef':'牛肉','lamb':'羊肉','pork':'猪肉','poultry':'禽肉','seafood':'鱼虾','tofu':'豆制品'};
 const VEGETABLE_LABELS={'leafy':'深色叶子菜','mushroom':'菌菇','melon':'瓜果'};
+const FRUIT_LABELS={'berry':'浆果类','citrus':'柑橘类','tropical':'热带水果','melon':'瓜果类'};
 const DRINK_LABELS={'milk-tea':'奶茶','coffee':'咖啡','fruit-tea':'果茶','pure-tea':'纯茶'};
 const EVALUATION_LABELS={'healthy':'健康餐','improve':'需改善','sugary':'含糖','oily':'高油','salty':'高钠','spicy':'高辣'};
 const STAPLE_FOOD_LABELS={'':'-- 无 --','米饭':'米饭','包子饺子':'包子饺子','粗粮低GI':'粗粮低GI','汤面汤粉':'汤面汤粉','汉堡披萨':'汉堡披萨'};
@@ -493,7 +503,7 @@ const RECOMMENDED_INTAKE={
 const MIN_RECORDS_FOR_RECO=7;
 const GENERAL_ADVICE='记录更多数据后推荐会更精准。目前建议：保持三餐规律，注意蛋白质和蔬菜的摄入。';
 // AI 识别 prompt（与 ai_recognizer.py 完全一致）
-const RECOGNIZE_PROMPT='你是一个专业的饮食记录助手。请仔细分析这张图片，它可能是：\n- 外卖订单截图（包含店铺名、菜品列表、价格、口味选择等）\n- 食物照片\n\n请按照以下规则逐项识别：\n\n【识别步骤】\n1. 先读取截图中所有文字内容（店铺名、菜品名、规格、口味、配料、价格等）\n2. 分析每一道菜的食材构成（主食、蛋白质、蔬菜等）\n3. 根据菜品名称和描述推断口味特征\n4. 根据截图特征判断来源\n5. 根据时间或菜品类型推断餐次\n6. 根据食材清单估算热量和营养成分（务必根据实际食材数量仔细计算，不要用固定模板）\n\n【字段定义】\n1. food_name: 食物名称（综合所有菜品，如"麻辣拌套餐"）\n2. merchant: 商家名称（从截图中提取店铺名，没有则null）\n3. price: 实付金额(元)（从截图中提取）\n4. calories: 估算热量(kcal)（整数，务必根据食材数量计算）\n5. protein: 蛋白质(g)（保留1位小数）\n6. carbs: 碳水(g)（保留1位小数）\n7. fat: 脂肪(g)（保留1位小数）\n8. source: takeout|leftover|home|feast（外卖/剩饭/自炊/大餐）\n9. meal_type: breakfast|lunch|dinner|snack-am|snack-pm|snack-ev\n10. flavor: 口味数组（空数组[]或包含：清淡/正常/重口）\n11. staple: 主食数组（空数组[]或包含：low-gi/refined）\n12. protein_tags: 蛋白来源数组（空数组[]或包含：beef/lamb/pork/poultry/seafood/tofu）\n13. vegetable: 蔬菜类型数组（空数组[]或包含：leafy/mushroom/melon）\n14. drink: 饮品类型数组（空数组[]或包含：milk-tea/coffee/fruit-tea/pure-tea）\n15. evaluation: 评价标签数组（空数组[]或包含：healthy/improve/sugary/oily/salty/spicy）\n16. drink_formula: 饮品配方（如果是饮品，记录配方如"珍珠奶茶去冰三分糖"，不是饮品则null）\n17. notes: 备注（记录套餐名、口味等详细信息）\n\n【智能推断规则】\n- 主食识别：玉米/红薯/糙米 → low-gi；米饭/白面包/面条 → refined\n- 蛋白质识别：鸡肉/鸡排/鸡胸 → poultry；牛肉/肥牛/牛排 → beef；猪肉/里脊/排骨 → pork；虾/鱼/蟹 → seafood；豆腐/豆制品 → tofu；羊肉/羊排 → lamb\n- 蔬菜识别：菠菜/生菜/油麦菜 → leafy；金针菇/香菇/木耳 → mushroom；番茄/茄子/黄瓜 → melon\n- 口味推断：麻辣/香辣/川味 → 重口；红烧/酱爆 → 重口；清蒸/白灼 → 清淡；普通家常菜 → 正常\n- 饮品识别：奶茶/咖啡/果汁 → drink数组中添加对应值，drink_formula记录具体配方\n- 外卖特征：有"订单已送达"、平台logo、配送费、红包等 → source=takeout\n- 剩菜特征：图片显示剩饭剩菜或用户标注 → source=leftover\n- 大餐特征：牛排/海鲜/多人聚餐/餐厅环境 → source=feast\n- 健康评价推断：沙拉/轻食/清蒸/水煮 → healthy；油炸/烧烤/炸鸡 → oily；川菜/湘菜/重口味 → salty；甜品/含糖饮料 → sugary；非常辣的菜品 → spicy\n\n【热量估算要点】\n- 米饭一碗（约100g）：130-150kcal\n- 面条一碗（约100g）：200-250kcal\n- 米粉/米线一碗（约100g）：130-160kcal\n- 馒头/包子一个（约100g）：250-300kcal\n- 鸡胸肉一份（约100g）：100-150kcal\n- 瘦牛肉/猪肉一份（约100g）：150-200kcal\n- 肥牛/五花肉一份（约100g）：250-350kcal\n- 蔬菜一份（约100g）：20-50kcal\n- 豆腐/豆制品一份（约100g）：80-120kcal\n- 油炸食品一份：300-400kcal\n- 麻辣烫/麻辣拌一份（含主食和肉）：500-800kcal\n- 珍珠奶茶一杯：300-500kcal\n- 咖啡一杯（黑咖啡）：10-50kcal，拿铁/摩卡：100-200kcal\n\n请只返回纯JSON格式（不要markdown代码块、不要解释文字），所有字段必须包含：\n{"food_name":"食物名称","merchant":"商家名或null","price":25.0,"calories":500,"protein":20.0,"carbs":60.0,"fat":15.0,"source":"takeout|leftover|home|feast","meal_type":"breakfast|lunch|dinner|snack-am|snack-pm|snack-ev","flavor":["清淡"],"staple":["refined"],"protein_tags":["poultry"],"vegetable":["leafy"],"drink":[],"evaluation":["healthy"],"drink_formula":null,"notes":"备注"}\n';
+const RECOGNIZE_PROMPT='你是一个专业的饮食记录助手。请仔细分析这张图片，它可能是：\n- 外卖订单截图（包含店铺名、菜品列表、价格、口味选择等）\n- 食物照片\n\n请按照以下规则逐项识别：\n\n【识别步骤】\n1. 先读取截图中所有文字内容（店铺名、菜品名、规格、口味、配料、价格等）\n2. 分析每一道菜的食材构成（主食、蛋白质、蔬菜等）\n3. 根据菜品名称和描述推断口味特征\n4. 根据截图特征判断来源\n5. 根据时间或菜品类型推断餐次\n6. 根据食材清单估算热量和营养成分（务必根据实际食材数量仔细计算，不要用固定模板）\n\n【字段定义】\n1. food_name: 食物名称（综合所有菜品，如"麻辣拌套餐"）\n2. merchant: 商家名称（从截图中提取店铺名，没有则null）\n3. price: 实付金额(元)（从截图中提取）\n4. calories: 估算热量(kcal)（整数，务必根据食材数量计算）\n5. protein: 蛋白质(g)（保留1位小数）\n6. carbs: 碳水(g)（保留1位小数）\n7. fat: 脂肪(g)（保留1位小数）\n8. source: takeout|leftover|home|feast（外卖/剩饭/自炊/大餐）\n9. meal_type: breakfast|lunch|dinner|snack\n10. flavor: 口味数组（空数组[]或包含：清淡/正常/重口）\n11. staple: 主食数组（空数组[]或包含：low-gi/refined）\n12. protein_tags: 蛋白来源数组（空数组[]或包含：beef/lamb/pork/poultry/seafood/tofu）\n13. vegetable: 蔬菜类型数组（空数组[]或包含：leafy/mushroom/melon）\n14. fruit: 水果类型数组（空数组[]或包含：berry/citrus/tropical/melon 即浆果类/柑橘类/热带水果/瓜果类）\n15. drink: 饮品类型数组（空数组[]或包含：milk-tea/coffee/fruit-tea/pure-tea）\n16. evaluation: 评价标签数组（空数组[]或包含：healthy/improve/sugary/oily/salty/spicy）\n17. drink_formula: 饮品配方（如果是饮品，记录配方如"珍珠奶茶去冰三分糖"，不是饮品则null）\n18. notes: 备注（记录套餐名、口味等详细信息）\n\n【智能推断规则】\n- 主食识别：玉米/红薯/糙米 → low-gi；米饭/白面包/面条 → refined\n- 蛋白质识别：鸡肉/鸡排/鸡胸 → poultry；牛肉/肥牛/牛排 → beef；猪肉/里脊/排骨 → pork；虾/鱼/蟹 → seafood；豆腐/豆制品 → tofu；羊肉/羊排 → lamb\n- 蔬菜识别：菠菜/生菜/油麦菜 → leafy；金针菇/香菇/木耳 → mushroom；番茄/茄子/黄瓜 → melon\n- 水果识别：草莓/蓝莓/树莓 → berry；橙子/柠檬/柚子 → citrus；芒果/菠萝/香蕉/榴莲 → tropical；西瓜/哈密瓜/葡萄 → melon\n- 口味推断：麻辣/香辣/川味 → 重口；红烧/酱爆 → 重口；清蒸/白灼 → 清淡；普通家常菜 → 正常\n- 饮品识别：奶茶/咖啡/果汁 → drink数组中添加对应值，drink_formula记录具体配方\n- 外卖特征：有"订单已送达"、平台logo、配送费、红包等 → source=takeout\n- 剩菜特征：图片显示剩饭剩菜或用户标注 → source=leftover\n- 大餐特征：牛排/海鲜/多人聚餐/餐厅环境 → source=feast\n- 健康评价推断：沙拉/轻食/清蒸/水煮 → healthy；油炸/烧烤/炸鸡 → oily；川菜/湘菜/重口味 → salty；甜品/含糖饮料 → sugary；非常辣的菜品 → spicy\n\n【热量估算要点】\n- 米饭一碗（约100g）：130-150kcal\n- 面条一碗（约100g）：200-250kcal\n- 米粉/米线一碗（约100g）：130-160kcal\n- 馒头/包子一个（约100g）：250-300kcal\n- 鸡胸肉一份（约100g）：100-150kcal\n- 瘦牛肉/猪肉一份（约100g）：150-200kcal\n- 肥牛/五花肉一份（约100g）：250-350kcal\n- 蔬菜一份（约100g）：20-50kcal\n- 豆腐/豆制品一份（约100g）：80-120kcal\n- 油炸食品一份：300-400kcal\n- 麻辣烫/麻辣拌一份（含主食和肉）：500-800kcal\n- 珍珠奶茶一杯：300-500kcal\n- 咖啡一杯（黑咖啡）：10-50kcal，拿铁/摩卡：100-200kcal\n\n请只返回纯JSON格式（不要markdown代码块、不要解释文字），所有字段必须包含：\n{"food_name":"食物名称","merchant":"商家名或null","price":25.0,"calories":500,"protein":20.0,"carbs":60.0,"fat":15.0,"source":"takeout|leftover|home|feast","meal_type":"breakfast|lunch|dinner|snack","flavor":["清淡"],"staple":["refined"],"protein_tags":["poultry"],"vegetable":["leafy"],"fruit":[],"drink":[],"evaluation":["healthy"],"drink_formula":null,"notes":"备注"}\n';
 // AI 提供商（与 app.py /api/providers 一致）
 const AI_PROVIDERS=[
   {value:'openrouter',label:'OpenRouter（推荐新手，多模型可选）',default_model:'anthropic/claude-3.5-sonnet',default_base_url:'https://openrouter.ai/api/v1',models:['anthropic/claude-3.5-sonnet','anthropic/claude-3.7-sonnet','openai/gpt-4o','openai/gpt-4o-mini','google/gemini-2.0-flash-exp:free','google/gemini-2.5-pro-preview-03-25','qwen/qwen2.5-vl-72b-instruct','meta-llama/llama-3.2-90b-vision-instruct','x-ai/grok-2-vision-1212']},
@@ -916,7 +926,7 @@ function normalizeAIResult(obj){
     calories:toInt(obj.calories),protein:toFloat(obj.protein),carbs:toFloat(obj.carbs),fat:toFloat(obj.fat),price:toFloat(obj.price),
     source:cleanStr(obj.source),meal_type:cleanStr(obj.meal_type),tags:cleanStr(obj.tags),notes:cleanStr(obj.notes),
     flavor:toArray(obj.flavor),staple:toArray(obj.staple),protein_tags:toArray(obj.protein_tags),
-    vegetable:toArray(obj.vegetable),drink:toArray(obj.drink),evaluation:toArray(obj.evaluation),
+    vegetable:toArray(obj.vegetable),fruit:toArray(obj.fruit),drink:toArray(obj.drink),evaluation:toArray(obj.evaluation),
     drink_formula:cleanStr(obj.drink_formula)||null,
   };
 }
@@ -954,7 +964,7 @@ async function testAIConnection(){
 }
 
 /* ==================== 全局状态 ==================== */
-const state={currentPage:'record',recommendData:null,searchResults:null,recordData:{currentDate:todayStr(),viewMode:'day',activeTags:[]}};
+const state={currentPage:'record',recommendData:null,searchResults:null,recordData:{currentDate:todayStr(),viewMode:'day',activeTags:[]},analysisData:null};
 
 /* ==================== Toast ==================== */
 function showToast(msg,type='info'){
@@ -1000,6 +1010,7 @@ function switchPage(name){
   $$('.bottom-nav-item').forEach(n=>n.classList.toggle('active',n.dataset.page===name));
   if(name==='record') loadRecord();
   else if(name==='recommend') loadRecommend();
+  else if(name==='analysis') loadAnalysis();
   else if(name==='settings') renderSettings();
 }
 
@@ -1096,7 +1107,7 @@ function renderDayView(date){
     html+='<div class="tl-item">';
     html+='<div class="tl-time">'+(m.time||'--:--')+'</div>';
     html+='<div class="tl-dot"></div>';
-    html+='<div class="tl-card">';
+    html+='<div class="tl-card" onclick="openEditMealModal('+m.id+')">';
     html+='<div class="tl-card-head"><span class="tl-name">'+escapeHtml(m.food_name)+'</span><span class="tl-meal">'+mealTypeIcon(m.meal_type)+' '+mealTypeLabel(m.meal_type)+'</span></div>';
     if(m.merchant) html+='<div class="tl-merchant">🏪 '+escapeHtml(m.merchant)+'</div>';
     const meta=[];
@@ -1180,7 +1191,8 @@ function renderWeekView(date){
     if(dayMeals.length){
       html+='<div class="wg-meals">';
       dayMeals.forEach(m=>{
-        html+='<div class="wg-meal" onclick="openEditMealModal('+m.id+')">';
+        const mealClass = 'wg-meal wg-' + m.meal_type;
+        html+='<div class="'+mealClass+'" onclick="openEditMealModal('+m.id+')">';
         html+='<div class="wg-meal-time">'+(m.time||'')+'</div>';
         html+='<div class="wg-meal-name">'+escapeHtml(m.food_name)+'</div>';
         html+='<div class="wg-meal-cal">'+fmtCal(m.calories)+'kcal</div>';
@@ -1195,17 +1207,6 @@ function renderWeekView(date){
   html+='</div>';
   if(state.recordData.activeTags.length){
     html+='<div class="filter-summary">已筛选：'+state.recordData.activeTags.join('、')+' · 共 '+filtered.length+' 条</div>';
-  }
-  if(filtered.length>=3){
-    const gaps=analyzeNutrientGaps(filtered);
-    if(gaps.length){
-      html+='<div class="section-card" style="margin-top:16px"><div class="section-title">🔍 营养缺口分析</div>';
-      gaps.forEach(g=>{
-        const cls='gap-'+(g.severity||'mild');const pct=Math.round((g.avg_intake/g.recommended)*100);
-        html+='<div class="gap-card '+cls+'"><div class="gap-name">'+escapeHtml(g.display_name)+'缺口 <span style="font-size:13px;color:var(--text-muted)">（缺 '+fmtNum(g.deficiency)+g.unit+'）</span></div><div class="gap-desc">'+escapeHtml(g.description)+'</div><div class="gap-bar"><div class="gap-bar-fill" style="width:'+pct+'%;background:var(--primary)"></div></div><div style="font-size:11px;color:var(--text-muted);margin-top:4px">日均摄入 '+fmtNum(g.avg_intake)+g.unit+' / 推荐 '+fmtNum(g.recommended)+g.unit+'</div></div>';
-      });
-      html+='</div>';
-    }
   }
   return html;
 }
@@ -1308,7 +1309,58 @@ function openQuickOrder(id){
   const newMeal={...meal,id:null,date:todayStr(),time:String(new Date().getHours()).padStart(2,'0')+':'+String(new Date().getMinutes()).padStart(2,'0'),created_at:null,updated_at:null};
   DB.addMeal(newMeal);
   showToast('已快速下单','success');
-  switchPage('record');
+  if(state.currentPage==='record') loadRecord();
+  else switchPage('record');
+}
+
+/* ==================== 分析页面 ==================== */
+function loadAnalysis(){renderAnalysis();}
+function renderAnalysis(){
+  const c=$('#analysis-content');
+  let html='<div class="section-card"><div class="section-title">📊 AI 营养分析</div>';
+  html+='<p style="font-size:14px;color:var(--text-light);margin-bottom:16px">基于你的真实饮食记录，AI将为你生成个性化的营养分析和健康建议。</p>';
+  html+='<button class="btn btn-primary" onclick="runAnalysis()" id="analyze-btn">🔍 开始分析</button>';
+  html+='<div id="analysis-result" style="margin-top:20px"></div>';
+  html+='</div>';
+  c.innerHTML=html;
+}
+function runAnalysis(){
+  const btn=$('#analyze-btn');
+  btn.disabled=true;
+  btn.textContent='分析中...';
+  const resultDiv=$('#analysis-result');
+  resultDiv.innerHTML='<div class="loading"><div class="spinner"></div><div>正在分析你的饮食数据...</div></div>';
+  
+  const meals=DB.getMeals();
+  const gaps=analyzeNutrientGaps(meals);
+  
+  if(!gaps.length){
+    resultDiv.innerHTML='<div class="eval-item eval-info"><span>📊</span><span>记录数据不足，请先记录更多餐次。</span></div>';
+    btn.disabled=false;
+    btn.textContent='🔍 开始分析';
+    return;
+  }
+  
+  let html='<div class="section-card" style="margin-top:16px"><div class="section-title">📈 营养缺口分析</div>';
+  gaps.forEach(g=>{
+    const cls='gap-'+(g.severity||'mild');
+    const pct=Math.round((g.avg_intake/g.recommended)*100);
+    html+='<div class="gap-card '+cls+'"><div class="gap-name">'+escapeHtml(g.display_name)+'缺口</div>';
+    html+='<div class="gap-desc">'+escapeHtml(g.description)+'</div>';
+    html+='<div class="gap-bar"><div class="gap-bar-fill" style="width:'+pct+'%;background:var(--primary)"></div></div>';
+    html+='<div style="font-size:11px;color:var(--text-muted);margin-top:4px">日均 '+fmtNum(g.avg_intake)+g.unit+' / 推荐 '+fmtNum(g.recommended)+g.unit+'</div></div>';
+  });
+  html+='</div>';
+  
+  const totalCal=meals.reduce((s,m)=>s+(m.calories||0),0);
+  const avgCal=meals.length>0?Math.round(totalCal/meals.length):0;
+  html+='<div class="section-card" style="margin-top:16px"><div class="section-title">💡 建议</div>';
+  html+='<div class="eval-item eval-info"><span>📊</span><span>总记录 '+meals.length+' 条，平均热量 '+fmtCal(avgCal)+'kcal。继续保持记录习惯！</span></div>';
+  html+='</div>';
+  
+  resultDiv.innerHTML=html;
+  btn.disabled=false;
+  btn.textContent='🔍 开始分析';
 }
 
 /* ==================== 搜索 ==================== */
@@ -1361,6 +1413,7 @@ function mealFormHtml(meal){
     field('staple','主食',chipsSelectInput('staple',meal.staple||[],STAPLE_LABELS))+
     field('protein_tags','蛋白',chipsSelectInput('protein_tags',meal.protein_tags||[],PROTEIN_LABELS))+
     field('vegetable','蔬菜',chipsSelectInput('vegetable',meal.vegetable||[],VEGETABLE_LABELS))+
+    field('fruit','水果',chipsSelectInput('fruit',meal.fruit||[],FRUIT_LABELS))+
     field('drink','饮品',chipsSelectInput('drink',meal.drink||[],DRINK_LABELS))+
     field('evaluation','评价',chipsSelectInput('evaluation',meal.evaluation||[],EVALUATION_LABELS))+
     '</div>'+
@@ -1376,9 +1429,7 @@ function guessMealType(time){
   const total=h*60+m;
   if(total>=300&&total<660) return 'breakfast';
   if(total>=660&&total<840) return 'lunch';
-  if(total>=840&&total<1020) return 'snack-pm';
-  if(total>=1020&&total<1200) return 'dinner';
-  if(total>=1200&&total<1380) return 'snack-ev';
+  if(total>=840&&total<1380) return 'snack';
   return 'lunch';
 }
 function timeInput(id,val){return '<input type="time" id="ff-'+id+'" value="'+escapeHtml(val)+'" onchange="onTimeChange()">';}
@@ -1477,7 +1528,7 @@ function readMealForm(){
     calories:getNum('calories'),protein:getNum('protein'),carbs:getNum('carbs'),fat:getNum('fat'),
     price:getNum('price'),serving:getNum('serving')||100,
     flavor:getArray('flavor'),staple:getArray('staple'),protein_tags:getArray('protein_tags'),
-    vegetable:getArray('vegetable'),drink:getArray('drink'),evaluation:getArray('evaluation'),
+    vegetable:getArray('vegetable'),fruit:getArray('fruit'),drink:getArray('drink'),evaluation:getArray('evaluation'),
     drink_formula:get('drink_formula')||null,notes:get('notes')||null
   };
 }
