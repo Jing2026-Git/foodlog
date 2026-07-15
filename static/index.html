@@ -297,6 +297,12 @@ table.data-table{width:100%;border-collapse:collapse;font-size:14px}
 .tl-meta{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:13px;color:var(--text-light);font-family:var(--font-body)}
 .tl-meta .tl-cal{font-family:var(--font-hand);font-size:16px;font-weight:600;color:var(--primary);font-variant-numeric:tabular-nums}
 .tl-tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
+.tl-merchant{font-size:12px;color:var(--text-muted);margin-top:2px}
+.tl-formula{font-size:12px;color:var(--text-muted);margin-top:4px;font-style:italic}
+.tl-actions{display:flex;gap:4px;margin-top:8px;padding-top:8px;border-top:1px dashed var(--dashed)}
+.tl-action-btn{width:28px;height:28px;border:none;border-radius:8px;background:var(--bg);color:var(--text-muted);font-size:14px;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center}
+.tl-action-btn:hover{background:var(--primary-light);color:var(--primary)}
+.tl-action-btn.danger:hover{background:var(--danger-light);color:var(--danger)}
 
 /* 标签筛选条 */
 .tag-filter-bar{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;align-items:center}
@@ -355,6 +361,18 @@ table.data-table{width:100%;border-collapse:collapse;font-size:14px}
 .record-empty .re-title{font-family:var(--font-hand);font-size:24px;color:var(--text-light);margin-bottom:6px}
 .record-empty .re-hint{font-size:14px;color:var(--text-muted);margin-bottom:18px}
 .record-empty .re-doodle{font-size:24px;color:var(--dashed);letter-spacing:8px;margin:10px 0}
+
+/* 外卖数据库 */
+.merchant-group{margin-bottom:12px;padding-bottom:12px;border-bottom:1px dashed var(--dashed)}
+.merchant-group:last-child{margin-bottom:0;padding-bottom:0;border-bottom:none}
+.merchant-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.merchant-name{font-size:15px;font-weight:600;color:var(--text);font-family:var(--font-hand)}
+.merchant-stats{font-size:12px;color:var(--text-muted)}
+.merchant-meals{display:flex;flex-direction:column;gap:6px}
+.merchant-meal{padding:8px 12px;background:var(--bg);border-radius:var(--radius-sm);cursor:pointer;transition:all .2s}
+.merchant-meal:hover{background:var(--primary-light);transform:translateX(4px)}
+.mm-name{font-size:14px;font-weight:500;color:var(--text)}
+.mm-info{font-size:12px;color:var(--text-muted);margin-top:2px}
 
 /* 响应式 */
 @media(max-width:680px){
@@ -1059,7 +1077,7 @@ function renderDayView(date){
     html+='<div class="tl-item">';
     html+='<div class="tl-time">'+(m.time||'--:--')+'</div>';
     html+='<div class="tl-dot"></div>';
-    html+='<div class="tl-card" onclick="openEditMealModal('+m.id+')">';
+    html+='<div class="tl-card">';
     html+='<div class="tl-card-head"><span class="tl-name">'+escapeHtml(m.food_name)+'</span><span class="tl-meal">'+mealTypeIcon(m.meal_type)+' '+mealTypeLabel(m.meal_type)+'</span></div>';
     if(m.merchant) html+='<div class="tl-merchant">🏪 '+escapeHtml(m.merchant)+'</div>';
     const meta=[];
@@ -1084,9 +1102,21 @@ function renderDayView(date){
       return '<span class="tag-chip" style="background:'+color+'20;color:'+color+'">'+escapeHtml(label)+'</span>';
     }).join('')+'</div>';
     if(m.drink_formula) html+='<div class="tl-formula">📝 '+escapeHtml(m.drink_formula)+'</div>';
+    html+='<div class="tl-actions">';
+    html+='<button class="tl-action-btn" onclick="event.stopPropagation();copyMeal('+m.id+')" title="复制">📋</button>';
+    html+='<button class="tl-action-btn" onclick="event.stopPropagation();moveMealToNextDay('+m.id+')" title="移到下一天">➡️</button>';
+    html+='<button class="tl-action-btn danger" onclick="event.stopPropagation();deleteMeal('+m.id+')" title="删除">🗑️</button>';
+    html+='</div>';
     html+='</div></div>';
   });
   html+='</div>';
+  const todayMeals=DB.getMealsByDate(date);
+  const reminders=generateTodayReminders(todayMeals);
+  if(reminders.length){
+    html+='<div class="section-card" style="margin-top:16px"><div class="section-title">⏰ 今日提醒</div>';
+    reminders.forEach(r=>{html+='<div class="reminder-item"><span>⏰</span><span>'+escapeHtml(r)+'</span></div>';});
+    html+='</div>';
+  }
   return html;
 }
 function renderTagFilterBar(){
@@ -1109,8 +1139,19 @@ function toggleTagFilter(tag){
 function renderWeekView(date){
   const ws=getMonday(date);const we=addDays(ws,6);
   const allMeals=DB.getMealsByDateRange(ws,we);
-  let html=renderTagFilterBar();
   const filtered=filterMealsByTags(allMeals,state.recordData.activeTags);
+  const totalCal=filtered.reduce((s,m)=>s+(m.calories||0),0);
+  const totalPrice=filtered.reduce((s,m)=>s+(m.price||0),0);
+  const daysWithMeals=[...new Set(filtered.map(m=>m.date))].length;
+  const avgCal=daysWithMeals>0?Math.round(totalCal/daysWithMeals):0;
+  const avgPrice=daysWithMeals>0?(totalPrice/daysWithMeals).toFixed(1):'0';
+  let html=renderTagFilterBar();
+  html+='<div class="day-summary">';
+  html+='<div class="ds-item"><div class="ds-val">'+fmtCal(totalCal)+'</div><div class="ds-label">当周总热量</div></div>';
+  html+='<div class="ds-item"><div class="ds-val">'+fmtCal(avgCal)+'</div><div class="ds-label">日均热量</div></div>';
+  html+='<div class="ds-item"><div class="ds-val">'+fmtPrice(totalPrice)+'</div><div class="ds-label">当周总支出</div></div>';
+  html+='<div class="ds-item"><div class="ds-val">¥'+avgPrice+'</div><div class="ds-label">日均支出</div></div>';
+  html+='</div>';
   html+='<div class="week-grid">';
   for(let i=0;i<7;i++){
     const d=addDays(ws,i);const dayMeals=filtered.filter(m=>m.date===d);
@@ -1136,6 +1177,17 @@ function renderWeekView(date){
   if(state.recordData.activeTags.length){
     html+='<div class="filter-summary">已筛选：'+state.recordData.activeTags.join('、')+' · 共 '+filtered.length+' 条</div>';
   }
+  if(filtered.length>=3){
+    const gaps=analyzeNutrientGaps(filtered);
+    if(gaps.length){
+      html+='<div class="section-card" style="margin-top:16px"><div class="section-title">🔍 营养缺口分析</div>';
+      gaps.forEach(g=>{
+        const cls='gap-'+(g.severity||'mild');const pct=Math.round((g.avg_intake/g.recommended)*100);
+        html+='<div class="gap-card '+cls+'"><div class="gap-name">'+escapeHtml(g.display_name)+'缺口 <span style="font-size:13px;color:var(--text-muted)">（缺 '+fmtNum(g.deficiency)+g.unit+'）</span></div><div class="gap-desc">'+escapeHtml(g.description)+'</div><div class="gap-bar"><div class="gap-bar-fill" style="width:'+pct+'%;background:var(--primary)"></div></div><div style="font-size:11px;color:var(--text-muted);margin-top:4px">日均摄入 '+fmtNum(g.avg_intake)+g.unit+' / 推荐 '+fmtNum(g.recommended)+g.unit+'</div></div>';
+      });
+      html+='</div>';
+    }
+  }
   return html;
 }
 function renderMonthView(date){
@@ -1147,8 +1199,19 @@ function renderMonthView(date){
   const monthStart=fmtDateISO(firstDay);
   const monthEnd=fmtDateISO(new Date(y,m,daysInMonth));
   const allMeals=DB.getMealsByDateRange(monthStart,monthEnd);
-  let html=renderTagFilterBar();
   const filtered=filterMealsByTags(allMeals,state.recordData.activeTags);
+  const totalCal=filtered.reduce((s,m)=>s+(m.calories||0),0);
+  const totalPrice=filtered.reduce((s,m)=>s+(m.price||0),0);
+  const daysWithMeals=[...new Set(filtered.map(m=>m.date))].length;
+  const avgCal=daysWithMeals>0?Math.round(totalCal/daysWithMeals):0;
+  const avgPrice=daysWithMeals>0?(totalPrice/daysWithMeals).toFixed(1):'0';
+  let html=renderTagFilterBar();
+  html+='<div class="day-summary">';
+  html+='<div class="ds-item"><div class="ds-val">'+fmtCal(totalCal)+'</div><div class="ds-label">当月总热量</div></div>';
+  html+='<div class="ds-item"><div class="ds-val">'+fmtCal(avgCal)+'</div><div class="ds-label">日均热量</div></div>';
+  html+='<div class="ds-item"><div class="ds-val">'+fmtPrice(totalPrice)+'</div><div class="ds-label">当月总支出</div></div>';
+  html+='<div class="ds-item"><div class="ds-val">¥'+avgPrice+'</div><div class="ds-label">日均支出</div></div>';
+  html+='</div>';
   const byDate={};
   filtered.forEach(meal=>{(byDate[meal.date]=byDate[meal.date]||[]).push(meal);});
   html+='<div class="month-grid">';
@@ -1183,32 +1246,50 @@ function jumpToDate(ds){state.recordData.currentDate=ds;state.recordData.viewMod
 /* ==================== 推荐页面 ==================== */
 function loadRecommend(){try{state.recommendData=getRecommendations();renderRecommend();}catch(e){$('#recommend-content').innerHTML=errorHtml(e.message);}}
 function renderRecommend(){
-  const data=state.recommendData;if(!data) return;
-  const c=$('#recommend-content');let html='';
-  if(data.reminders&&data.reminders.length){
-    html+='<div class="section-card"><div class="section-title">⏰ 今日提醒</div>';
-    data.reminders.forEach(r=>{html+='<div class="reminder-item"><span>⏰</span><span>'+escapeHtml(r)+'</span></div>';});
-    html+='</div>';
-  }
-  if(data.nutrient_gaps&&data.nutrient_gaps.length){
-    html+='<div class="section-card"><div class="section-title">🔍 营养缺口分析</div>';
-    data.nutrient_gaps.forEach(g=>{
-      const cls='gap-'+(g.severity||'mild');const pct=Math.round((g.avg_intake/g.recommended)*100);
-      html+='<div class="gap-card '+cls+'"><div class="gap-name">'+escapeHtml(g.display_name)+'缺口 <span style="font-size:13px;color:var(--text-muted)">（缺 '+fmtNum(g.deficiency)+g.unit+'）</span></div><div class="gap-desc">'+escapeHtml(g.description)+'</div><div class="gap-bar"><div class="gap-bar-fill" style="width:'+pct+'%;background:var(--primary)"></div></div><div style="font-size:11px;color:var(--text-muted);margin-top:4px">日均摄入 '+fmtNum(g.avg_intake)+g.unit+' / 推荐 '+fmtNum(g.recommended)+g.unit+'</div></div>';
+  const takeoutMeals=DB.getMeals().filter(m=>m.source==='takeout'&&m.merchant);
+  const byMerchant={};
+  takeoutMeals.forEach(m=>{
+    const key=m.merchant||'其他';
+    if(!byMerchant[key]) byMerchant[key]=[];
+    byMerchant[key].push(m);
+  });
+  const merchants=Object.keys(byMerchant).sort((a,b)=>byMerchant[b].length-byMerchant[a].length);
+  let html='';
+  if(merchants.length){
+    html+='<div class="section-card"><div class="section-title">🏪 我的外卖库</div>';
+    merchants.forEach(merchant=>{
+      const meals=byMerchant[merchant];
+      const avgPrice=(meals.reduce((s,m)=>s+(m.price||0),0)/meals.length).toFixed(1);
+      const avgCal=Math.round(meals.reduce((s,m)=>s+(m.calories||0),0)/meals.length);
+      html+='<div class="merchant-group"><div class="merchant-header"><span class="merchant-name">'+escapeHtml(merchant)+'</span><span class="merchant-stats">'+meals.length+'次 · 均价¥'+avgPrice+' · 均热'+fmtCal(avgCal)+'kcal</span></div>';
+      html+='<div class="merchant-meals">';
+      const uniqueMeals={};
+      meals.forEach(m=>{
+        const key=m.food_name;
+        if(!uniqueMeals[key]) uniqueMeals[key]={...m,count:0};
+        uniqueMeals[key].count++;
+      });
+      Object.values(uniqueMeals).sort((a,b)=>b.count-a.count).forEach(m=>{
+        html+='<div class="merchant-meal" onclick="openQuickOrder('+m.id+')">';
+        html+='<div class="mm-name">'+escapeHtml(m.food_name)+'</div>';
+        html+='<div class="mm-info">🔥'+fmtCal(m.calories)+'kcal'+(m.price!=null?' · ¥'+fmtPrice(m.price):'')+(m.count>1?' · 点过'+m.count+'次':'')+'</div>';
+        html+='</div>';
+      });
+      html+='</div></div>';
     });
     html+='</div>';
+  }else{
+    html=emptyState('🏪','暂无外卖记录','记录外卖订单后会自动整理到这里');
   }
-  if(data.recommendations&&data.recommendations.length){
-    html+='<div class="section-card"><div class="section-title">💡 为你推荐</div>';
-    data.recommendations.forEach(r=>{
-      const m=r.meal||{};
-      html+='<div class="reco-card"><div class="reco-text">'+escapeHtml(r.recommendation_text)+'</div><div class="reco-meal"><span class="meal-icon">'+sourceIcon(m.source)+'</span><div class="meal-info"><div class="name">'+escapeHtml(m.food_name||'')+'</div><div class="detail">'+mealTypeLabel(m.meal_type||'')+' · '+(m.food_category||'')+' · 🔥 '+fmtCal(m.calories)+' kcal'+(m.price!=null?' · ¥'+fmtPrice(m.price):'')+'</div></div></div><span class="reco-reason">'+escapeHtml(r.reason)+'</span></div>';
-    });
-    html+='</div>';
-  }
-  if(data.general_advice){html+='<div class="section-card"><div class="section-title">💡 通用建议</div><div class="eval-item eval-info" style="border-left:3px solid var(--info)"><span>💡</span><span>'+escapeHtml(data.general_advice)+'</span></div></div>';}
-  if(!html){html=emptyState('💡','暂无推荐','记录更多数据后会有个性化推荐');}
-  c.innerHTML=html;
+  $('#recommend-content').innerHTML=html;
+}
+function openQuickOrder(id){
+  const meal=DB.getMeal(id);
+  if(!meal) return;
+  const newMeal={...meal,id:null,date:todayStr(),time:String(new Date().getHours()).padStart(2,'0')+':'+String(new Date().getMinutes()).padStart(2,'0')};
+  DB.addMeal(newMeal);
+  showToast('已快速下单','success');
+  switchPage('record');
 }
 
 /* ==================== 搜索 ==================== */
@@ -1237,7 +1318,7 @@ function mealFormHtml(meal){
   return '<form id="meal-form" onsubmit="event.preventDefault();">'+
     '<div class="form-section"><div class="form-section-header">📅 基础信息</div><div class="form-grid">'+
     field('date','日期',dateInput('date',d),false,true)+
-    field('time','时间',textInput('time',t,'HH:MM'),false,true)+
+    field('time','时间',timeInput('time',t),false,true)+
     field('meal_type','餐次',selectInput('meal_type',mt,MEAL_TYPE_LABELS),false,true)+
     field('source','来源',selectInput('source',meal.source||'takeout',SOURCE_LABELS),false,true)+
     '</div></div>'+
@@ -1280,6 +1361,15 @@ function guessMealType(time){
   if(total>=1020&&total<1200) return 'dinner';
   if(total>=1200&&total<1380) return 'snack-ev';
   return 'lunch';
+}
+function timeInput(id,val){return '<input type="time" id="ff-'+id+'" value="'+escapeHtml(val)+'" onchange="onTimeChange()">';}
+function onTimeChange(){
+  const time=$('#ff-time')?.value;
+  if(time){
+    const mt=guessMealType(time);
+    const mealTypeInput=$('#ff-meal_type');
+    if(mealTypeInput) mealTypeInput.value=mt;
+  }
 }
 function toggleTagsSection(){
   const content=$('#tags-content');const header=$('#tags-section .form-section-header');
@@ -1405,6 +1495,26 @@ function saveEditMeal(id){
 function deleteMeal(id){
   if(!confirm('确定删除这条记录吗？')) return;
   try{DB.deleteMeal(id);showToast('记录已删除','success');refreshCurrentPage();}catch(e){showToast(e.message,'error');}
+}
+function copyMeal(id){
+  try{
+    const meal=DB.getMeal(id);
+    if(!meal) return;
+    const newMeal={...meal,id:null,date:state.recordData.currentDate};
+    DB.addMeal(newMeal);
+    showToast('记录已复制','success');
+    refreshCurrentPage();
+  }catch(e){showToast(e.message,'error');}
+}
+function moveMealToNextDay(id){
+  try{
+    const meal=DB.getMeal(id);
+    if(!meal) return;
+    const nextDay=addDays(meal.date,1);
+    DB.updateMeal(id,{date:nextDay});
+    showToast('记录已移到下一天','success');
+    refreshCurrentPage();
+  }catch(e){showToast(e.message,'error');}
 }
 function refreshCurrentPage(){
   if(state.currentPage==='record') loadRecord();
