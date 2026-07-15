@@ -192,6 +192,7 @@ table.data-table{width:100%;border-collapse:collapse;font-size:14px}
 .form-section-header:hover{background:var(--primary-light)}
 .form-section:not(.collapsible) .form-section-header{cursor:default}
 .form-section > .form-grid{padding:14px 16px}
+.form-section #tags-content{padding:14px 16px}
 .form-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
 .form-grid.tags-grid{grid-template-columns:repeat(3,1fr)}
 .chips-container{display:flex;flex-wrap:wrap;gap:6px}
@@ -865,16 +866,21 @@ function normalizeAIResult(obj){
   const cleanStr=v=>{if(v==null) return '';const s=String(v).trim();return (s==='null'||s==='NULL'||s==='无'||s==='没有'||s==='none'||s==='N/A')?'':s;};
   const toFloat=v=>{if(v==null||v==='') return null;const n=Number(v);return isNaN(n)?null:n;};
   const toInt=v=>{if(v==null||v==='') return null;const n=parseInt(v,10);if(!isNaN(n)) return n;const f=parseFloat(v);return isNaN(f)?null:Math.round(f);};
+  const toArray=v=>{if(v==null) return [];if(Array.isArray(v)) return v.map(String).filter(Boolean);const s=cleanStr(v);return s?s.split(',').map(x=>x.trim()).filter(Boolean):[];};
   const sf=cleanStr(obj.staple_food);
   const mt=cleanStr(obj.meat_type);
   const vt=cleanStr(obj.vegetable_type);
   const t=cleanStr(obj.taste);
   return {
     food_name:cleanStr(obj.food_name),
+    merchant:cleanStr(obj.merchant)||null,
     food_category:cleanStr(obj.food_category),
     staple_food:sf||null,meat_type:mt||null,vegetable_type:vt||null,taste:t||null,
     calories:toInt(obj.calories),protein:toFloat(obj.protein),carbs:toFloat(obj.carbs),fat:toFloat(obj.fat),price:toFloat(obj.price),
     source:cleanStr(obj.source),meal_type:cleanStr(obj.meal_type),tags:cleanStr(obj.tags),notes:cleanStr(obj.notes),
+    flavor:toArray(obj.flavor),staple:toArray(obj.staple),protein_tags:toArray(obj.protein_tags),
+    vegetable:toArray(obj.vegetable),drink:toArray(obj.drink),evaluation:toArray(obj.evaluation),
+    drink_formula:cleanStr(obj.drink_formula)||null,
   };
 }
 async function recognizeScreenshot(file){
@@ -1237,7 +1243,7 @@ function mealFormHtml(meal){
     '</div></div>'+
     '<div class="form-section"><div class="form-section-header">🍽️ 食物信息</div><div class="form-grid">'+
     field('food_name','食物名称',textInput('food_name',meal.food_name||'','如：麻辣拌套餐'),true,true)+
-    '<div id="merchant-field" class="form-field'+(meal.source==='takeout'?'':' hidden')+'">'+
+    '<div id="merchant-field" class="form-field'+(meal.source==='takeout'||meal.merchant?'':' hidden')+'">'+
     '<label for="ff-merchant">商家名</label>'+textInput('merchant',meal.merchant||'','如：拌将麻辣拌')+'</div>'+
     field('price','价格',numInput('price',meal.price,'元'))+
     '</div></div>'+
@@ -1276,16 +1282,17 @@ function guessMealType(time){
   return 'lunch';
 }
 function toggleTagsSection(){
-  const content=$('#tags-content');const header=$('.form-section-header','#tags-section');
+  const content=$('#tags-content');const header=$('#tags-section .form-section-header');
   if(!content) return;
   const isOpen=content.style.display!=='none';
   content.style.display=isOpen?'none':'block';
-  header.textContent=isOpen?'🏷️ 自定义标签 ▼':'🏷️ 自定义标签 ▲';
+  if(header) header.textContent=isOpen?'🏷️ 自定义标签 ▼':'🏷️ 自定义标签 ▲';
 }
 function updateMerchantVisibility(){
   const source=$('#ff-source')?.value;
+  const merchantVal=$('#ff-merchant')?.value;
   const field=$('#merchant-field');
-  if(field) field.classList.toggle('hidden',source!=='takeout');
+  if(field) field.classList.toggle('hidden',source!=='takeout'&&!merchantVal);
 }
 function updateDrinkFormulaVisibility(){
   const drinkInput=$('#ff-drink');
