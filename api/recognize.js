@@ -17,6 +17,18 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: '只支持 POST 请求' });
   }
 
+  // 全局兜底：任何未捕获异常都返回 JSON 而非 HTML 504
+  try {
+    return await handleRequest(req, res);
+  } catch (e) {
+    console.error('[recognize] UNCAUGHT', e);
+    if (!res.headersSent) {
+      return res.status(500).json({ error: '代理服务内部异常: ' + (e?.message || String(e)) });
+    }
+  }
+}
+
+async function handleRequest(req, res) {
   const { provider, api_key, base_url, model, prompt, image, test } = req.body || {};
 
   if (!provider || !api_key || !model || !base_url) {
@@ -52,6 +64,7 @@ export default async function handler(req, res) {
     } else {
       result = await callOpenAICompat(base, api_key, model, prompt, image);
     }
+    if (typeof result !== 'string') result = '';
     console.log('[recognize] OK', { provider, model, base, resultLen: result.length, resultHead: result.slice(0, 300) });
     return res.status(200).json({ success: true, text: result });
   } catch (e) {
@@ -104,7 +117,13 @@ async function callAnthropic(base, apiKey, model, prompt, imageB64) {
 
   const data = await resp.json();
   const blocks = data.content || [];
-  return blocks.filter(b => b.type === 'text').map(b => b.text || '').join('');
+  const text = blocks.filter(b => b.type === 'text').map(b => b.text || '').join('');
+  if (!text && blocks.length === 0) {
+    const e = new Error('AI 响应缺少 content 字段');
+    e.detail = JSON.stringify(data).slice(0, 500);
+    throw e;
+  }
+  return text;
 }
 
 async function callOpenAICompat(base, apiKey, model, prompt, imageB64) {
@@ -136,7 +155,13 @@ async function callOpenAICompat(base, apiKey, model, prompt, imageB64) {
   }
 
   const data = await resp.json();
-  return data.choices[0].message.content;
+  const text = data && data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content;
+  if (typeof text !== 'string') {
+    const e = new Error('AI 响应缺少 choices[0].message.content 字段');
+    e.detail = JSON.stringify(data).slice(0, 500);
+    throw e;
+  }
+  return text;
 }
 
 async function testAnthropic(base, apiKey, model) {
