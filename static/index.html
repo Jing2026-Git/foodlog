@@ -187,6 +187,17 @@ table.data-table{width:100%;border-collapse:collapse;font-size:14px}
 .form-field input:focus,.form-field select:focus,.form-field textarea:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(255,107,53,0.1)}
 .form-field textarea{resize:vertical;min-height:60px}
 .form-field .hint{font-size:11px;color:var(--text-muted)}
+.form-section{margin-bottom:16px;background:var(--card-bg);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow)}
+.form-section-header{padding:12px 16px;background:linear-gradient(135deg,var(--primary-light) 0%,var(--bg) 100%);border-bottom:1px dashed var(--dashed);font-size:15px;font-weight:600;color:var(--primary-dark);cursor:pointer;display:flex;align-items:center;gap:8px;transition:background .2s}
+.form-section-header:hover{background:var(--primary-light)}
+.form-section:not(.collapsible) .form-section-header{cursor:default}
+.form-section > .form-grid{padding:14px 16px}
+.form-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.form-grid.tags-grid{grid-template-columns:repeat(3,1fr)}
+.chips-container{display:flex;flex-wrap:wrap;gap:6px}
+.chip-btn{padding:5px 12px;border:2px solid var(--border);border-radius:999px;font-size:13px;color:var(--text-light);background:var(--card-bg);cursor:pointer;transition:all .2s;font-family:var(--font-body)}
+.chip-btn:hover{border-color:var(--primary);color:var(--primary);background:var(--primary-light)}
+.chip-btn.selected{border-color:var(--primary);background:var(--primary-gradient);color:#fff;box-shadow:0 2px 6px rgba(255,107,53,0.3)}
 .upload-zone{border:2px dashed var(--border);border-radius:var(--radius);padding:40px 20px;text-align:center;cursor:pointer;transition:all .2s}
 .upload-zone:hover,.upload-zone.dragover{border-color:var(--primary);background:var(--primary-light)}
 .upload-zone .uz-icon{font-size:48px;margin-bottom:12px}
@@ -236,7 +247,7 @@ table.data-table{width:100%;border-collapse:collapse;font-size:14px}
 @media(max-width:680px){
   .navbar{padding:0 12px}.-nav-items{display:none}.main-content{padding:16px 12px 90px}
   .stats-row{grid-template-columns:repeat(2,1fr)}.search-summary{grid-template-columns:repeat(2,1fr)}
-  .compare-grid{grid-template-columns:1fr}.form-grid{grid-template-columns:1fr}
+  .compare-grid{grid-template-columns:1fr}.form-grid{grid-template-columns:1fr}.tags-grid{grid-template-columns:repeat(2,1fr)}
   .bottom-nav{display:flex!important}.page-header{flex-direction:column;align-items:flex-start}
   .modal{max-width:100%}.chart{height:140px;gap:3px}.bar-label{font-size:10px}.bar-value{font-size:10px}
   .nav-right .btn-text{display:none}.nav-right .btn{padding:8px 12px}
@@ -434,14 +445,20 @@ table.data-table{width:100%;border-collapse:collapse;font-size:14px}
 /* 饭记 - 纯前端静态版（数据存 localStorage，AI 识别直接从浏览器调用 API） */
 
 /* ==================== 常量 ==================== */
-const MEAL_TYPE_LABELS={breakfast:'早餐',lunch:'午餐',dinner:'晚餐',snack:'加餐'};
-const MEAL_TYPE_ICONS={breakfast:'🌅',lunch:'☀️',dinner:'🌙',snack:'🍵'};
-const MEAL_TYPES_ORDER=['breakfast','lunch','dinner','snack'];
-const SOURCE_LABELS={takeout:'外卖',home:'自炊',restaurant:'下馆子'};
-const SOURCE_ICONS={takeout:'🛵',home:'🏠',restaurant:'🍽️'};
+const MEAL_TYPE_LABELS={breakfast:'早餐',lunch:'午餐',dinner:'晚餐','snack-am':'上午加餐','snack-pm':'下午加餐','snack-ev':'晚上加餐'};
+const MEAL_TYPE_ICONS={breakfast:'🌅',lunch:'☀️',dinner:'🌙','snack-am':'🍵','snack-pm':'🍵','snack-ev':'🍵'};
+const MEAL_TYPES_ORDER=['breakfast','lunch','snack-am','snack-pm','dinner','snack-ev'];
+const SOURCE_LABELS={takeout:'外卖',leftover:'剩饭',home:'自炊',feast:'大餐'};
+const SOURCE_ICONS={takeout:'🛵',leftover:'🥡',home:'🏠',feast:'🍽️'};
 const DRINK_TAGS=['奶茶','咖啡'];
 const MAIN_MEAL_TYPES=['breakfast','lunch','dinner'];
-const MEAL_TYPE_NAMES={breakfast:'早餐',lunch:'午餐',dinner:'晚餐',snack:'加餐'};
+const MEAL_TYPE_NAMES={breakfast:'早餐',lunch:'午餐',dinner:'晚餐',snack:'加餐','snack-am':'上午加餐','snack-pm':'下午加餐','snack-ev':'晚上加餐'};
+const FLAVOR_LABELS={'清淡':'清淡','normal':'正常','重口':'重口'};
+const STAPLE_LABELS={'low-gi':'低GI粗粮','refined':'精米精面'};
+const PROTEIN_LABELS={'beef':'牛肉','lamb':'羊肉','pork':'猪肉','poultry':'禽肉','seafood':'鱼虾','tofu':'豆制品'};
+const VEGETABLE_LABELS={'leafy':'深色叶子菜','mushroom':'菌菇','melon':'瓜果'};
+const DRINK_LABELS={'milk-tea':'奶茶','coffee':'咖啡','fruit-tea':'果茶','pure-tea':'纯茶'};
+const EVALUATION_LABELS={'healthy':'健康餐','improve':'需改善','sugary':'含糖','oily':'高油','salty':'高钠','spicy':'高辣'};
 const STAPLE_FOOD_LABELS={'':'-- 无 --','米饭':'米饭','包子饺子':'包子饺子','粗粮低GI':'粗粮低GI','汤面汤粉':'汤面汤粉','汉堡披萨':'汉堡披萨'};
 const MEAT_TYPE_LABELS={'':'-- 无 --','鱼虾':'鱼虾','猪肉':'猪肉','鸡鸭':'鸡鸭','牛羊':'牛羊','奶类':'奶类','蛋or植物':'蛋or植物'};
 const VEGETABLE_TYPE_LABELS={'':'-- 无 --','叶子菜':'叶子菜','菌菇':'菌菇','瓜果茄':'瓜果茄','根茎类':'根茎类','豆类':'豆类','藻类':'藻类'};
@@ -457,7 +474,7 @@ const RECOMMENDED_INTAKE={
 const MIN_RECORDS_FOR_RECO=7;
 const GENERAL_ADVICE='记录更多数据后推荐会更精准。目前建议：保持三餐规律，注意蛋白质和蔬菜的摄入。';
 // AI 识别 prompt（与 ai_recognizer.py 完全一致）
-const RECOGNIZE_PROMPT='你是一个专业的饮食记录助手。请仔细分析这张图片，它可能是：\n- 外卖订单截图（包含店铺名、菜品列表、价格、口味选择等）\n- 食物照片\n\n请按照以下规则逐项识别：\n\n【识别步骤】\n1. 先读取截图中所有文字内容（店铺名、菜品名、规格、口味、配料、价格等）\n2. 分析每一道菜的食材构成（主食、蛋白质、蔬菜等）\n3. 根据菜品名称和描述推断口味特征\n4. 根据截图特征判断来源（外卖平台截图=takeout，餐厅=restaurant，家庭=home）\n5. 根据时间或菜品类型推断餐次\n6. 根据食材清单估算热量和营养成分（务必根据实际食材数量仔细计算，不要用固定模板）\n\n【字段定义】\n1. food_name: 食物名称（综合所有菜品，如"麻辣拌套餐"）\n2. food_category: 主要类别（主食/肉类/蔬菜/饮品/水果/其他）\n3. staple_food: 主食类型（米饭/包子饺子/粗粮低GI/汤面汤粉/汉堡披萨/null）\n4. meat_type: 蛋白来源，可多选逗号分隔（鱼虾/猪肉/鸡鸭/牛羊/奶类/蛋or植物/null）\n5. vegetable_type: 蔬菜类型，可多选逗号分隔（叶子菜/菌菇/瓜果茄/根茎类/豆类/null）\n6. taste: 口味（清淡/重口/油/辣/甜/咸，可多选逗号分隔）\n7. calories: 估算热量(kcal)（整数，务必根据食材数量计算：一碗米饭约130-150kcal，一份面条约200-250kcal，一份肉类约150-250kcal，一份蔬菜约20-50kcal）\n8. protein: 蛋白质(g)（保留1位小数）\n9. carbs: 碳水(g)（保留1位小数）\n10. fat: 脂肪(g)（保留1位小数）\n11. price: 实付金额(元)（从截图中提取）\n12. source: takeout|home|restaurant\n13. meal_type: breakfast|lunch|dinner|snack\n14. tags: 健康属性标签（仅1-2个，如"健康餐"、"油太多"、"高纳"、"快餐"、"大餐"、"外卖"。商家名称、菜品名、口味不要进入标签）\n15. notes: 备注（记录店铺名、套餐名、口味等详细信息）\n\n【智能推断规则】\n- 主食识别：刀削面/面条/米线/米粉 → 汤面汤粉；玉米/红薯 → 粗粮低GI；米饭 → 米饭\n- 蛋白质识别：鸡肉/鸡排/鸡胸 → 鸡鸭；牛肉/肥牛/牛排 → 牛羊；猪肉/里脊/排骨 → 猪肉；虾/鱼/蟹 → 鱼虾；豆腐/豆制品 → 蛋or植物\n- 蔬菜识别：菠菜/生菜/油麦菜 → 叶子菜；海带/海藻 → 藻类；笋尖/藕片 → 根茎类；金针菇/香菇 → 菌菇；番茄/茄子/黄瓜 → 瓜果茄\n- 口味推断：麻辣/香辣/川味 → 辣+重口；红烧/酱爆 → 咸+重口；清蒸/白灼 → 清淡；奶油/芝士 → 油+甜\n- 饮品识别：奶茶/咖啡/果汁 → 饮品，food_category设为"饮品"\n- 外卖特征：有"订单已送达"、平台logo、配送费、红包等 → source=takeout\n- 健康标签推断：沙拉/轻食/清蒸/水煮 → 健康餐；油炸/烧烤/炸鸡 → 油太多；川菜/湘菜/重口味 → 高纳；麦当劳/KFC/汉堡 → 快餐；牛排/海鲜/多人聚餐 → 大餐\n\n【热量估算要点】\n- 米饭一碗（约100g）：130-150kcal\n- 面条一碗（约100g）：200-250kcal\n- 米粉/米线一碗（约100g）：130-160kcal\n- 馒头/包子一个（约100g）：250-300kcal\n- 鸡胸肉一份（约100g）：100-150kcal\n- 瘦牛肉/猪肉一份（约100g）：150-200kcal\n- 肥牛/五花肉一份（约100g）：250-350kcal\n- 蔬菜一份（约100g）：20-50kcal\n- 豆腐/豆制品一份（约100g）：80-120kcal\n- 油炸食品一份：300-400kcal\n- 麻辣烫/麻辣拌一份（含主食和肉）：500-800kcal\n\n【示例：外卖订单截图】\n截图内容：拌将麻辣拌·麻辣烫(国贸店)，品质·随心配套餐，腐皮三鲜卷/老式里脊肉/高蛋白鸡肉肉片/鸡胸肉丸/脆嫩笋尖/去根海带苗/豌豆苗/千叶豆腐/香甜爆汁玉米/菠菜刀削面，口味：微麻微辣，实付30.14元\n识别结果：\nfood_name="麻辣拌套餐"\nfood_category="主食"\nstaple_food="汤面汤粉"\nmeat_type="鸡鸭,猪肉,蛋or植物"\nvegetable_type="叶子菜,根茎类,豆类"\ntaste="辣,重口"\ncalories=650\nprotein=35.0\ncarbs=70.0\nfat=25.0\nprice=30.14\nsource="takeout"\nmeal_type="lunch"\ntags="高纳"\nnotes="拌将麻辣拌·麻辣烫(国贸店)，品质·随心配套餐，微麻微辣口味"\n\n请只返回纯JSON格式（不要markdown代码块、不要解释文字），所有字段必须包含，没有值的用null：\n{"food_name":"食物名称","food_category":"主食|肉类|蔬菜|饮品|水果|其他","staple_food":"米饭|包子饺子|粗粮低GI|汤面汤粉|汉堡披萨|null","meat_type":"鱼虾|猪肉|鸡鸭|牛羊|奶类|蛋or植物|null","vegetable_type":"叶子菜|菌菇|瓜果茄|根茎类|豆类|null","taste":"清淡|重口|油|辣|甜|咸|null","calories":500,"protein":20.0,"carbs":60.0,"fat":15.0,"price":25.0,"source":"takeout|home|restaurant","meal_type":"breakfast|lunch|dinner|snack","tags":"标签1,标签2","notes":"备注"}\n';
+const RECOGNIZE_PROMPT='你是一个专业的饮食记录助手。请仔细分析这张图片，它可能是：\n- 外卖订单截图（包含店铺名、菜品列表、价格、口味选择等）\n- 食物照片\n\n请按照以下规则逐项识别：\n\n【识别步骤】\n1. 先读取截图中所有文字内容（店铺名、菜品名、规格、口味、配料、价格等）\n2. 分析每一道菜的食材构成（主食、蛋白质、蔬菜等）\n3. 根据菜品名称和描述推断口味特征\n4. 根据截图特征判断来源\n5. 根据时间或菜品类型推断餐次\n6. 根据食材清单估算热量和营养成分（务必根据实际食材数量仔细计算，不要用固定模板）\n\n【字段定义】\n1. food_name: 食物名称（综合所有菜品，如"麻辣拌套餐"）\n2. merchant: 商家名称（从截图中提取店铺名，没有则null）\n3. price: 实付金额(元)（从截图中提取）\n4. calories: 估算热量(kcal)（整数，务必根据食材数量计算）\n5. protein: 蛋白质(g)（保留1位小数）\n6. carbs: 碳水(g)（保留1位小数）\n7. fat: 脂肪(g)（保留1位小数）\n8. source: takeout|leftover|home|feast（外卖/剩饭/自炊/大餐）\n9. meal_type: breakfast|lunch|dinner|snack-am|snack-pm|snack-ev\n10. flavor: 口味数组（空数组[]或包含：清淡/正常/重口）\n11. staple: 主食数组（空数组[]或包含：low-gi/refined）\n12. protein_tags: 蛋白来源数组（空数组[]或包含：beef/lamb/pork/poultry/seafood/tofu）\n13. vegetable: 蔬菜类型数组（空数组[]或包含：leafy/mushroom/melon）\n14. drink: 饮品类型数组（空数组[]或包含：milk-tea/coffee/fruit-tea/pure-tea）\n15. evaluation: 评价标签数组（空数组[]或包含：healthy/improve/sugary/oily/salty/spicy）\n16. drink_formula: 饮品配方（如果是饮品，记录配方如"珍珠奶茶去冰三分糖"，不是饮品则null）\n17. notes: 备注（记录套餐名、口味等详细信息）\n\n【智能推断规则】\n- 主食识别：玉米/红薯/糙米 → low-gi；米饭/白面包/面条 → refined\n- 蛋白质识别：鸡肉/鸡排/鸡胸 → poultry；牛肉/肥牛/牛排 → beef；猪肉/里脊/排骨 → pork；虾/鱼/蟹 → seafood；豆腐/豆制品 → tofu；羊肉/羊排 → lamb\n- 蔬菜识别：菠菜/生菜/油麦菜 → leafy；金针菇/香菇/木耳 → mushroom；番茄/茄子/黄瓜 → melon\n- 口味推断：麻辣/香辣/川味 → 重口；红烧/酱爆 → 重口；清蒸/白灼 → 清淡；普通家常菜 → 正常\n- 饮品识别：奶茶/咖啡/果汁 → drink数组中添加对应值，drink_formula记录具体配方\n- 外卖特征：有"订单已送达"、平台logo、配送费、红包等 → source=takeout\n- 剩菜特征：图片显示剩饭剩菜或用户标注 → source=leftover\n- 大餐特征：牛排/海鲜/多人聚餐/餐厅环境 → source=feast\n- 健康评价推断：沙拉/轻食/清蒸/水煮 → healthy；油炸/烧烤/炸鸡 → oily；川菜/湘菜/重口味 → salty；甜品/含糖饮料 → sugary；非常辣的菜品 → spicy\n\n【热量估算要点】\n- 米饭一碗（约100g）：130-150kcal\n- 面条一碗（约100g）：200-250kcal\n- 米粉/米线一碗（约100g）：130-160kcal\n- 馒头/包子一个（约100g）：250-300kcal\n- 鸡胸肉一份（约100g）：100-150kcal\n- 瘦牛肉/猪肉一份（约100g）：150-200kcal\n- 肥牛/五花肉一份（约100g）：250-350kcal\n- 蔬菜一份（约100g）：20-50kcal\n- 豆腐/豆制品一份（约100g）：80-120kcal\n- 油炸食品一份：300-400kcal\n- 麻辣烫/麻辣拌一份（含主食和肉）：500-800kcal\n- 珍珠奶茶一杯：300-500kcal\n- 咖啡一杯（黑咖啡）：10-50kcal，拿铁/摩卡：100-200kcal\n\n请只返回纯JSON格式（不要markdown代码块、不要解释文字），所有字段必须包含：\n{"food_name":"食物名称","merchant":"商家名或null","price":25.0,"calories":500,"protein":20.0,"carbs":60.0,"fat":15.0,"source":"takeout|leftover|home|feast","meal_type":"breakfast|lunch|dinner|snack-am|snack-pm|snack-ev","flavor":["清淡"],"staple":["refined"],"protein_tags":["poultry"],"vegetable":["leafy"],"drink":[],"evaluation":["healthy"],"drink_formula":null,"notes":"备注"}\n';
 // AI 提供商（与 app.py /api/providers 一致）
 const AI_PROVIDERS=[
   {value:'openrouter',label:'OpenRouter（推荐新手，多模型可选）',default_model:'anthropic/claude-3.5-sonnet',default_base_url:'https://openrouter.ai/api/v1',models:['anthropic/claude-3.5-sonnet','anthropic/claude-3.7-sonnet','openai/gpt-4o','openai/gpt-4o-mini','google/gemini-2.0-flash-exp:free','google/gemini-2.5-pro-preview-03-25','qwen/qwen2.5-vl-72b-instruct','meta-llama/llama-3.2-90b-vision-instruct','x-ai/grok-2-vision-1212']},
@@ -950,12 +967,17 @@ const TAG_FILTERS=[
   {key:'高油/高纳',icon:'🌶️',color:'#C0392B',bg:'#FBEAE8'},
 ];
 function mealMatchesTagFilter(m,tag){
-  if(tag==='饮品') return m.food_category==='饮品';
+  if(tag==='饮品'){
+    if(Array.isArray(m.drink)&&m.drink.length>0) return true;
+    return m.food_category==='饮品';
+  }
   if(tag==='健康餐'){
+    if(Array.isArray(m.evaluation)&&m.evaluation.includes('healthy')) return true;
     const t=(m.tags||'')+(m.food_name||'');
     return t.includes('健康餐')||t.includes('沙拉')||t.includes('轻食');
   }
   if(tag==='高油/高纳'){
+    if(Array.isArray(m.evaluation)&&(m.evaluation.includes('oily')||m.evaluation.includes('salty'))) return true;
     const t=(m.tags||'')+(m.taste||'');
     return t.includes('高油')||t.includes('高纳')||t.includes('油太多');
   }
@@ -1033,16 +1055,29 @@ function renderDayView(date){
     html+='<div class="tl-dot"></div>';
     html+='<div class="tl-card" onclick="openEditMealModal('+m.id+')">';
     html+='<div class="tl-card-head"><span class="tl-name">'+escapeHtml(m.food_name)+'</span><span class="tl-meal">'+mealTypeIcon(m.meal_type)+' '+mealTypeLabel(m.meal_type)+'</span></div>';
-    const tags=m.tags?String(m.tags).split(',').map(t=>t.trim()).filter(Boolean):[];
+    if(m.merchant) html+='<div class="tl-merchant">🏪 '+escapeHtml(m.merchant)+'</div>';
     const meta=[];
-    if(m.food_category) meta.push(m.food_category);
-    if(m.staple_food) meta.push('🍚'+m.staple_food);
-    if(m.meat_type) meta.push('🥩'+m.meat_type);
-    if(m.taste) meta.push('👅'+m.taste);
+    const flavor=Array.isArray(m.flavor)?m.flavor:(m.taste?m.taste.split(','):[]);
+    if(flavor.length) meta.push('👅'+flavor.map(f=>FLAVOR_LABELS[f]||f).join('/'));
+    const staple=Array.isArray(m.staple)?m.staple:(m.staple_food?[m.staple_food]:[]);
+    if(staple.length) meta.push('🍚'+staple.map(s=>STAPLE_LABELS[s]||STAPLE_FOOD_LABELS[s]||s).join('/'));
+    const protein=Array.isArray(m.protein_tags)?m.protein_tags:(m.meat_type?m.meat_type.split(','):[]);
+    if(protein.length) meta.push('🥩'+protein.map(p=>PROTEIN_LABELS[p]||MEAT_TYPE_LABELS[p]||p).join('/'));
+    const veg=Array.isArray(m.vegetable)?m.vegetable:(m.vegetable_type?m.vegetable_type.split(','):[]);
+    if(veg.length) meta.push('🥬'+veg.map(v=>VEGETABLE_LABELS[v]||VEGETABLE_TYPE_LABELS[v]||v).join('/'));
+    const drink=Array.isArray(m.drink)?m.drink:[];
+    if(drink.length) meta.push('🥤'+drink.map(d=>DRINK_LABELS[d]||d).join('/'));
     meta.push('🔥'+fmtCal(m.calories)+'kcal');
     if(m.price!=null) meta.push('💰¥'+fmtPrice(m.price));
     html+='<div class="tl-meta">'+meta.map(x=>'<span>'+escapeHtml(x)+'</span>').join('')+'</div>';
-    if(tags.length) html+='<div class="tl-tags">'+tags.map(t=>'<span class="tag-chip">'+escapeHtml(t)+'</span>').join('')+'</div>';
+    const evalTags=Array.isArray(m.evaluation)?m.evaluation:(m.tags?m.tags.split(','):[]);
+    const allTags=[...evalTags,...drink];
+    if(allTags.length) html+='<div class="tl-tags">'+allTags.map(t=>{
+      const label=EVALUATION_LABELS[t]||DRINK_LABELS[t]||t;
+      const color=t==='healthy'?'#2D7A4E':t==='improve'?'#F39C12':t==='sugary'?'#E74C3C':t==='oily'?'#C0392B':t==='salty'?'#3498DB':t==='spicy'?'#E67E22':'#8B5E3C';
+      return '<span class="tag-chip" style="background:'+color+'20;color:'+color+'">'+escapeHtml(label)+'</span>';
+    }).join('')+'</div>';
+    if(m.drink_formula) html+='<div class="tl-formula">📝 '+escapeHtml(m.drink_formula)+'</div>';
     html+='</div></div>';
   });
   html+='</div>';
@@ -1190,26 +1225,145 @@ function renderSearch(){
 
 /* ==================== 餐记录表单 ==================== */
 function mealFormHtml(meal){
-  meal=meal||{};const d=meal.date||todayStr();
-  return '<form id="meal-form" onsubmit="event.preventDefault();"><div class="form-grid">'+field('date','日期',dateInput('date',d),false,true)+field('time','时间',textInput('time',meal.time||'','HH:MM'))+field('meal_type','餐次',selectInput('meal_type',meal.meal_type||'lunch',MEAL_TYPE_LABELS),false,true)+field('source','来源',selectInput('source',meal.source||'takeout',SOURCE_LABELS),false,true)+field('food_name','食物名',textInput('food_name',meal.food_name||'','如：拿铁咖啡+三明治'),true,true)+field('food_category','类别',selectInput('food_category',meal.food_category||'',FOOD_CATEGORY_LABELS))+field('staple_food','主食',selectInput('staple_food',meal.staple_food||'',STAPLE_FOOD_LABELS))+field('meat_type','肉类类型',selectInput('meat_type',meal.meat_type||'',MEAT_TYPE_LABELS))+field('vegetable_type','蔬菜类型',selectInput('vegetable_type',meal.vegetable_type||'',VEGETABLE_TYPE_LABELS))+field('taste','口味',selectInput('taste',meal.taste||'',TASTE_LABELS))+field('calories','热量',numInput('calories',meal.calories,'kcal'))+field('protein','蛋白质',numInput('protein',meal.protein,'g'))+field('carbs','碳水',numInput('carbs',meal.carbs,'g'))+field('fat','脂肪',numInput('fat',meal.fat,'g'))+field('price','价格',numInput('price',meal.price,'元'))+'<div class="form-field"><label>分量</label><select id="ff-serving" onchange="onServingChange()"><option value="100"'+(meal.serving!==50?' selected':'')+'>正常分量</option><option value="50"'+(meal.serving===50?' selected':'')+'>剩菜（热量减半）</option></select></div></div><div class="form-field full"><label>标签</label><input type="text" id="ff-tags" value="'+escapeHtml(meal.tags||'')+'" placeholder="多个标签用逗号分隔，如：咖啡,大餐"><div class="hint">用逗号分隔多个标签</div></div><div class="form-field full"><label>备注</label><textarea id="ff-notes" placeholder="可选备注...">'+escapeHtml(meal.notes||'')+'</textarea></div></div></form>';
+  meal=meal||{};const d=meal.date||todayStr();const t=meal.time||'';const mt=meal.meal_type||guessMealType(t);
+  const tagsSectionOpen=(meal.flavor&&meal.flavor.length>0)||(meal.staple&&meal.staple.length>0)||(meal.protein_tags&&meal.protein_tags.length>0)||(meal.vegetable&&meal.vegetable.length>0)||(meal.drink&&meal.drink.length>0)||(meal.evaluation&&meal.evaluation.length>0);
+  const hasDrink=(meal.drink&&meal.drink.length>0);
+  return '<form id="meal-form" onsubmit="event.preventDefault();">'+
+    '<div class="form-section"><div class="form-section-header">📅 基础信息</div><div class="form-grid">'+
+    field('date','日期',dateInput('date',d),false,true)+
+    field('time','时间',textInput('time',t,'HH:MM'),false,true)+
+    field('meal_type','餐次',selectInput('meal_type',mt,MEAL_TYPE_LABELS),false,true)+
+    field('source','来源',selectInput('source',meal.source||'takeout',SOURCE_LABELS),false,true)+
+    '</div></div>'+
+    '<div class="form-section"><div class="form-section-header">🍽️ 食物信息</div><div class="form-grid">'+
+    field('food_name','食物名称',textInput('food_name',meal.food_name||'','如：麻辣拌套餐'),true,true)+
+    '<div id="merchant-field" class="form-field'+(meal.source==='takeout'?'':' hidden')+'">'+
+    '<label for="ff-merchant">商家名</label>'+textInput('merchant',meal.merchant||'','如：拌将麻辣拌')+'</div>'+
+    field('price','价格',numInput('price',meal.price,'元'))+
+    '</div></div>'+
+    '<div class="form-section"><div class="form-section-header">🔥 营养估算</div><div class="form-grid">'+
+    field('calories','热量',numInput('calories',meal.calories,'kcal'))+
+    field('protein','蛋白质',numInput('protein',meal.protein,'g'))+
+    field('carbs','碳水',numInput('carbs',meal.carbs,'g'))+
+    field('fat','脂肪',numInput('fat',meal.fat,'g'))+
+    field('serving','分量',selectInput('serving',meal.serving||100,{'100':'正常','50':'减半'}))+
+    '</div></div>'+
+    '<div class="form-section collapsible" id="tags-section"><div class="form-section-header" onclick="toggleTagsSection()">🏷️ 自定义标签 '+(!tagsSectionOpen?'▼':'▲')+'</div>'+
+    '<div id="tags-content" style="display:'+(tagsSectionOpen?'block':'none')+'">'+
+    '<div class="form-grid tags-grid">'+
+    field('flavor','口味',chipsSelectInput('flavor',meal.flavor||[],FLAVOR_LABELS))+
+    field('staple','主食',chipsSelectInput('staple',meal.staple||[],STAPLE_LABELS))+
+    field('protein_tags','蛋白',chipsSelectInput('protein_tags',meal.protein_tags||[],PROTEIN_LABELS))+
+    field('vegetable','蔬菜',chipsSelectInput('vegetable',meal.vegetable||[],VEGETABLE_LABELS))+
+    field('drink','饮品',chipsSelectInput('drink',meal.drink||[],DRINK_LABELS))+
+    field('evaluation','评价',chipsSelectInput('evaluation',meal.evaluation||[],EVALUATION_LABELS))+
+    '</div>'+
+    '<div id="drink-formula-field" class="form-field'+(hasDrink?'':' hidden')+'">'+
+    '<label for="ff-drink_formula">饮品配方</label>'+textInput('drink_formula',meal.drink_formula||'','如：珍珠奶茶去冰三分糖')+'</div>'+
+    '</div></div>'+
+    '<div class="form-field full"><label>备注</label><textarea id="ff-notes" placeholder="可选备注...">'+escapeHtml(meal.notes||'')+'</textarea></div>'+
+    '</form>';
+}
+function guessMealType(time){
+  if(!time) return 'lunch';
+  const [h,m]=time.split(':').map(Number);
+  const total=h*60+m;
+  if(total>=300&&total<660) return 'breakfast';
+  if(total>=660&&total<840) return 'lunch';
+  if(total>=840&&total<1020) return 'snack-pm';
+  if(total>=1020&&total<1200) return 'dinner';
+  if(total>=1200&&total<1380) return 'snack-ev';
+  return 'lunch';
+}
+function toggleTagsSection(){
+  const content=$('#tags-content');const header=$('.form-section-header','#tags-section');
+  if(!content) return;
+  const isOpen=content.style.display!=='none';
+  content.style.display=isOpen?'none':'block';
+  header.textContent=isOpen?'🏷️ 自定义标签 ▼':'🏷️ 自定义标签 ▲';
+}
+function updateMerchantVisibility(){
+  const source=$('#ff-source')?.value;
+  const field=$('#merchant-field');
+  if(field) field.classList.toggle('hidden',source!=='takeout');
+}
+function updateDrinkFormulaVisibility(){
+  const drinkInput=$('#ff-drink');
+  const field=$('#drink-formula-field');
+  if(!field) return;
+  const hasDrink=drinkInput&&drinkInput.value&&drinkInput.value.split(',').length>0;
+  field.classList.toggle('hidden',!hasDrink);
+}
+function onSourceChange(){
+  updateMerchantVisibility();
+  const source=$('#ff-source')?.value;
+  const serving=$('#ff-serving');
+  if(source==='leftover'&&serving){
+    serving.value='50';
+    halveNutrition();
+  }
 }
 function onServingChange(){
   const s=Number($('#ff-serving')?.value)||100;
-  if(s!==50) return;
+  if(s===50) halveNutrition();
+}
+function halveNutrition(){
   const halve=id=>{const el=$('#ff-'+id);if(el&&el.value!=='') el.value=(Number(el.value)/2).toFixed(1);};
   halve('calories');halve('protein');halve('carbs');halve('fat');
 }
 function field(id,label,inner,full,req){return '<div class="form-field'+(full?' full':'')+'"><label for="ff-'+id+'">'+label+(req?' <span class="req">*</span>':'')+'</label>'+inner+'</div>';}
-function textInput(id,val,ph,req){return '<input type="text" id="ff-'+id+'" value="'+escapeHtml(val)+'" placeholder="'+escapeHtml(ph||'')+'"'+(req?' required':'')+'>';}
+function textInput(id,val,ph){return '<input type="text" id="ff-'+id+'" value="'+escapeHtml(val)+'" placeholder="'+escapeHtml(ph||'')+'">';}
 function numInput(id,val,unit){return '<input type="number" step="any" id="ff-'+id+'" value="'+(val!=null&&val!==''?val:'')+'" placeholder="0">';}
 function dateInput(id,val){return '<input type="date" id="ff-'+id+'" value="'+escapeHtml(val)+'">';}
-function selectInput(id,val,options){let h='<input list="dl-'+id+'" id="ff-'+id+'" value="'+escapeHtml(val)+'" placeholder="选择或输入..." style="width:100%">';h+='<datalist id="dl-'+id+'">';for(const k in options){if(k==='') continue;h+='<option value="'+escapeHtml(k)+'">'+escapeHtml(options[k])+'</option>';}h+='</datalist>';return h;}
+function selectInput(id,val,options){
+  let h='<select id="ff-'+id+'"';
+  if(id==='source') h+=' onchange="onSourceChange()"';
+  if(id==='serving') h+=' onchange="onServingChange()"';
+  h+='>';
+  for(const k in options){h+='<option value="'+escapeHtml(k)+'"'+(String(val)===String(k)?' selected':'')+'>'+escapeHtml(options[k])+'</option>';}
+  h+='</select>';
+  return h;
+}
+function chipsSelectInput(id,values,options){
+  const vals=Array.isArray(values)?values:(values?values.split(','):[]);
+  const selected=new Set(vals);
+  let h='<div class="chips-container">';
+  const hiddenId='ff-'+id;
+  h+='<input type="hidden" id="'+hiddenId+'" value="'+escapeHtml(vals.join(','))+'">';
+  for(const k in options){
+    const label=options[k];
+    const isSelected=selected.has(k);
+    h+='<button type="button" class="chip-btn'+(isSelected?' selected':'')+'"'+
+    ' data-id="'+escapeHtml(id)+'" data-value="'+escapeHtml(k)+'"'+
+    ' onclick="toggleChip(this)">'+escapeHtml(label)+'</button>';
+  }
+  h+='</div>';
+  return h;
+}
+function toggleChip(btn){
+  const id=btn.dataset.id;const value=btn.dataset.value;const hiddenId='ff-'+id;
+  const hidden=$('#'+hiddenId);if(!hidden) return;
+  const current=hidden.value?hidden.value.split(','):[];
+  const idx=current.indexOf(value);
+  if(idx>=0) current.splice(idx,1);
+  else current.push(value);
+  hidden.value=current.join(',');
+  btn.classList.toggle('selected');
+  if(id==='drink') updateDrinkFormulaVisibility();
+}
 function readMealForm(){
   const get=id=>{const el=$('#ff-'+id);return el?el.value.trim():'';};
   const getNum=id=>{const v=get(id);return v===''?null:Number(v);};
-  const sf=get('staple_food');
-  const serving=Number(get('serving'))||100;
-  return {date:get('date'),time:get('time')||null,meal_type:get('meal_type'),source:get('source'),food_name:get('food_name'),food_category:get('food_category')||null,staple_food:sf||null,meat_type:get('meat_type')||null,vegetable_type:get('vegetable_type')||null,taste:get('taste')||null,calories:getNum('calories'),protein:getNum('protein'),carbs:getNum('carbs'),fat:getNum('fat'),price:getNum('price'),tags:get('tags')||null,notes:get('notes')||null,serving:serving};
+  const getArray=id=>{const v=get(id);return v?v.split(',').filter(Boolean):[];};
+  return {
+    date:get('date'),time:get('time')||null,meal_type:get('meal_type'),source:get('source'),
+    food_name:get('food_name'),merchant:get('merchant')||null,
+    calories:getNum('calories'),protein:getNum('protein'),carbs:getNum('carbs'),fat:getNum('fat'),
+    price:getNum('price'),serving:getNum('serving')||100,
+    flavor:getArray('flavor'),staple:getArray('staple'),protein_tags:getArray('protein_tags'),
+    vegetable:getArray('vegetable'),drink:getArray('drink'),evaluation:getArray('evaluation'),
+    drink_formula:get('drink_formula')||null,notes:get('notes')||null
+  };
 }
 
 /* ==================== 添加记录 ==================== */
@@ -1272,10 +1426,13 @@ async function handleUpload(file){
     const now=new Date();
     const draftMeal=DB.addMeal({
       date:todayStr(),time:String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0'),
-      meal_type:resp.data.meal_type||'snack',source:resp.data.source||'takeout',food_name:resp.data.food_name||'未识别',
-      food_category:resp.data.food_category||null,staple_food:resp.data.staple_food||null,meat_type:resp.data.meat_type||null,
-      vegetable_type:resp.data.vegetable_type||null,taste:resp.data.taste||null,calories:resp.data.calories,protein:resp.data.protein,carbs:resp.data.carbs,fat:resp.data.fat,
-      price:resp.data.price,tags:resp.data.tags||null,notes:resp.data.notes||null,screenshot_path:null,ai_raw_response:resp.raw_response||'',status:'draft',
+      meal_type:resp.data.meal_type||'lunch',source:resp.data.source||'takeout',food_name:resp.data.food_name||'未识别',
+      merchant:resp.data.merchant||null,calories:resp.data.calories,protein:resp.data.protein,carbs:resp.data.carbs,fat:resp.data.fat,
+      price:resp.data.price,serving:100,
+      flavor:Array.isArray(resp.data.flavor)?resp.data.flavor:[],staple:Array.isArray(resp.data.staple)?resp.data.staple:[],
+      protein_tags:Array.isArray(resp.data.protein_tags)?resp.data.protein_tags:[],vegetable:Array.isArray(resp.data.vegetable)?resp.data.vegetable:[],
+      drink:Array.isArray(resp.data.drink)?resp.data.drink:[],evaluation:Array.isArray(resp.data.evaluation)?resp.data.evaluation:[],
+      drink_formula:resp.data.drink_formula||null,notes:resp.data.notes||null,screenshot_path:null,ai_raw_response:resp.raw_response||'',status:'draft',
     });
     const draft=DB.getMealById(draftMeal.id);
     const body='<div style="margin-bottom:14px;padding:10px 14px;background:var(--success-light);border-radius:var(--radius-sm);font-size:13px;color:#009378;display:flex;align-items:center;gap:6px"><span>✓</span><span>AI识别成功！请核对并修正以下信息：</span></div>'+mealFormHtml(draft);
