@@ -476,7 +476,7 @@ table.data-table{width:100%;border-collapse:collapse;font-size:14px}
 const MEAL_TYPE_LABELS={breakfast:'早餐',lunch:'午餐',dinner:'晚餐',snack:'加餐'};
 const MEAL_TYPE_ICONS={breakfast:'🌅',lunch:'☀️',dinner:'🌙',snack:'🍵'};
 const MEAL_TYPES_ORDER=['breakfast','lunch','dinner','snack'];
-const SOURCE_LABELS={takeout:'外卖',leftover:'剩饭',home:'自炊',feast:'大餐'};
+const SOURCE_LABELS={takeout:'外卖',leftover:'剩菜',home:'自炊',feast:'大餐'};
 const SOURCE_ICONS={takeout:'🛵',leftover:'🥡',home:'🏠',feast:'🍽️'};
 const DRINK_TAGS=['奶茶','咖啡'];
 const MAIN_MEAL_TYPES=['breakfast','lunch','dinner','snack'];
@@ -1133,8 +1133,7 @@ function renderDayView(date){
     }).join('')+'</div>';
     if(m.drink_formula) html+='<div class="tl-formula">📝 '+escapeHtml(m.drink_formula)+'</div>';
     html+='<div class="tl-actions">';
-    html+='<button class="tl-action-btn" onclick="event.stopPropagation();copyMeal('+m.id+')" title="复制">📋</button>';
-    html+='<button class="tl-action-btn" onclick="event.stopPropagation();moveMealToNextDay('+m.id+')" title="移到下一天">➡️</button>';
+    html+='<button class="tl-action-btn" onclick="event.stopPropagation();leftoverMeal('+m.id+')" title="吃剩了">🍱</button>';
     html+='<button class="tl-action-btn danger" onclick="event.stopPropagation();deleteMeal('+m.id+')" title="删除">🗑️</button>';
     html+='</div>';
     html+='</div></div>';
@@ -1566,24 +1565,29 @@ function deleteMeal(id){
   if(!confirm('确定删除这条记录吗？')) return;
   try{DB.deleteMeal(id);showToast('记录已删除','success');refreshCurrentPage();}catch(e){showToast(e.message,'error');}
 }
-function copyMeal(id){
+function leftoverMeal(id){
   try{
     const meal=DB.getMealById(id);
     if(!meal) return;
-    const newMeal={...meal,id:null,date:state.recordData.currentDate,created_at:null,updated_at:null};
-    DB.addMeal(newMeal);
-    showToast('记录已复制','success');
+    const half=n=>(n==null?null:Math.round(Number(n)*100/2)/100);
+    const halved={
+      serving:50,
+      price:half(meal.price),
+      calories:half(meal.calories),
+      protein:half(meal.protein),
+      carbs:half(meal.carbs),
+      fat:half(meal.fat),
+    };
+    DB.updateMeal(id,halved);
+    const newMeal={
+      ...meal,...halved,
+      id:null,created_at:null,updated_at:null,
+      source:'leftover',
+    };
+    const created=DB.addMeal(newMeal);
+    showToast('已生成分量减半的两条记录，请编辑剩菜记录','success');
     refreshCurrentPage();
-  }catch(e){showToast(e.message,'error');}
-}
-function moveMealToNextDay(id){
-  try{
-    const meal=DB.getMealById(id);
-    if(!meal) return;
-    const nextDay=addDays(meal.date,1);
-    DB.updateMeal(id,{date:nextDay});
-    showToast('记录已移到下一天','success');
-    refreshCurrentPage();
+    setTimeout(()=>openEditMealModal(created.id),60);
   }catch(e){showToast(e.message,'error');}
 }
 function refreshCurrentPage(){
