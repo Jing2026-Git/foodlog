@@ -110,7 +110,13 @@ async function callAnthropic(base, apiKey, model, prompt, imageB64) {
 
   if (!resp.ok) {
     const body = await resp.text();
-    const e = new Error('AI 服务返回错误: ' + resp.status);
+    let msg = 'AI 服务返回错误: ' + resp.status;
+    if (body.toLowerCase().includes('embedding')) {
+      msg = '所选模型是 embedding 模型（向量模型），不能用于图像识别。请选择带 vision/vl 的视觉模型（如 claude-3.5-sonnet、gpt-4o、gemini-2.0-flash-exp:free）';
+    } else if (body.toLowerCase().includes('model') && body.toLowerCase().includes('not')) {
+      msg = '所选模型不存在或不可用。请检查模型名称是否正确。';
+    }
+    const e = new Error(msg);
     e.detail = body;
     throw e;
   }
@@ -149,7 +155,13 @@ async function callOpenAICompat(base, apiKey, model, prompt, imageB64) {
 
   if (!resp.ok) {
     const body = await resp.text();
-    const e = new Error('AI 服务返回错误: ' + resp.status);
+    let msg = 'AI 服务返回错误: ' + resp.status;
+    if (body.toLowerCase().includes('embedding')) {
+      msg = '所选模型是 embedding 模型（向量模型），不能用于图像识别。请选择带 vision/vl 的视觉模型（如 claude-3.5-sonnet、gpt-4o、gemini-2.0-flash-exp:free）';
+    } else if (body.toLowerCase().includes('model') && body.toLowerCase().includes('not')) {
+      msg = '所选模型不存在或不可用。请检查模型名称是否正确。';
+    }
+    const e = new Error(msg);
     e.detail = body;
     throw e;
   }
@@ -184,7 +196,13 @@ async function testAnthropic(base, apiKey, model) {
   }
   if (!resp.ok) {
     const body = await resp.text();
-    const e = new Error('AI 服务返回错误: ' + resp.status);
+    let msg = 'AI 服务返回错误: ' + resp.status;
+    if (body.toLowerCase().includes('embedding')) {
+      msg = '所选模型是 embedding 模型（向量模型），不能用于图像识别。请选择带 vision/vl 的视觉模型（如 claude-3.5-sonnet、gpt-4o、gemini-2.0-flash-exp:free）';
+    } else if (body.toLowerCase().includes('model') && body.toLowerCase().includes('not')) {
+      msg = '所选模型不存在或不可用。请检查模型名称是否正确。';
+    }
+    const e = new Error(msg);
     e.detail = body;
     throw e;
   }
@@ -210,7 +228,13 @@ async function testOpenAICompat(base, apiKey, model) {
   }
   if (!resp.ok) {
     const body = await resp.text();
-    const e = new Error('AI 服务返回错误: ' + resp.status);
+    let msg = 'AI 服务返回错误: ' + resp.status;
+    if (body.toLowerCase().includes('embedding')) {
+      msg = '所选模型是 embedding 模型（向量模型），不能用于图像识别。请选择带 vision/vl 的视觉模型（如 claude-3.5-sonnet、gpt-4o、gemini-2.0-flash-exp:free）';
+    } else if (body.toLowerCase().includes('model') && body.toLowerCase().includes('not')) {
+      msg = '所选模型不存在或不可用。请检查模型名称是否正确。';
+    }
+    const e = new Error(msg);
     e.detail = body;
     throw e;
   }
